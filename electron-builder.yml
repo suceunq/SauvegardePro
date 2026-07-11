@@ -1,0 +1,32 @@
+appId: com.sauvegardepro.app
+productName: SauvegardePro
+copyright: Copyright (c) 2026 SauvegardePro
+
+directories:
+  output: dist
+  buildResources: build
+
+asar: true
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  artifactName: ${productName}-${version}-Installation.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: SauvegardePro
+  language: "1036"
+  displayLanguageSelector: false
+  artifactName: ${productName}-${version}-Installation.${ext}
+  uninstallDisplayName: SauvegardePro
+
+fileAssociations: []
