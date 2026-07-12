@@ -17,6 +17,8 @@ const api: SauvegardeProAPI = {
     recents: (jobId) => ipcRenderer.invoke(CANAUX_IPC.runsRecents, jobId),
     journal: (runId) => ipcRenderer.invoke(CANAUX_IPC.runsJournal, runId),
     confirmerMiroir: (jobId, runId) => ipcRenderer.invoke(CANAUX_IPC.runsConfirmerMiroir, jobId, runId)
+    , fichiers: (runId) => ipcRenderer.invoke(CANAUX_IPC.runsFichiers, runId)
+    , restaurer: (runId, destination, cheminsSource) => ipcRenderer.invoke(CANAUX_IPC.runsRestaurer, runId, destination, cheminsSource)
   },
   discovery: {
     lecteurs: () => ipcRenderer.invoke(CANAUX_IPC.discoveryLecteurs),

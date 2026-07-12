@@ -100,6 +100,12 @@ export interface RunFile {
   derniereErreur: string | null
 }
 
+export interface ResultatRestauration {
+  fichiersRestaures: number
+  fichiersIgnores: number
+  erreurs: string[]
+}
+
 export interface EntreeManifest {
   jobId: number
   runId: number

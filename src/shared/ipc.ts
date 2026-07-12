@@ -10,6 +10,7 @@ import type {
   Parametres,
   ProgressionRun,
   Run
+  , RunFile, ResultatRestauration
 } from './types'
 
 export const CANAUX_IPC = {
@@ -25,6 +26,8 @@ export const CANAUX_IPC = {
   runsRecents: 'runs:recents',
   runsJournal: 'runs:journal',
   runsConfirmerMiroir: 'runs:confirmerMiroir',
+  runsFichiers: 'runs:fichiers',
+  runsRestaurer: 'runs:restaurer',
 
   discoveryLecteurs: 'discovery:lecteurs',
   discoveryReseau: 'discovery:reseau',
@@ -62,6 +65,8 @@ export interface SauvegardeProAPI {
     recents(jobId?: number): Promise<Run[]>
     journal(runId: number): Promise<EntreeJournal[]>
     confirmerMiroir(jobId: number, runId: number): Promise<void>
+    fichiers(runId: number): Promise<RunFile[]>
+    restaurer(runId: number, destination: string, cheminsSource?: string[]): Promise<ResultatRestauration>
   }
   discovery: {
     lecteurs(): Promise<LecteurDetecte[]>
