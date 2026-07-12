@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { CANAUX_IPC, type SauvegardeProAPI } from '@shared/ipc'
-import type { DemandeConfirmationMiroir, LecteurDetecte, ProgressionRun } from '@shared/types'
+import type { DemandeConfirmationMiroir, EtatMiseAJour, LecteurDetecte, ProgressionRun } from '@shared/types'
 
 const api: SauvegardeProAPI = {
   jobs: {
@@ -30,6 +30,12 @@ const api: SauvegardeProAPI = {
     obtenir: () => ipcRenderer.invoke(CANAUX_IPC.settingsObtenir),
     enregistrer: (parametres) => ipcRenderer.invoke(CANAUX_IPC.settingsEnregistrer, parametres)
   },
+  misesAJour: {
+    etatActuel: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourEtat),
+    verifier: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourVerifier),
+    telecharger: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourTelecharger),
+    installer: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourInstaller)
+  },
   evenements: {
     surProgression: (cb: (p: ProgressionRun) => void) => {
       const ecouteur = (_event: Electron.IpcRendererEvent, p: ProgressionRun): void => cb(p)
@@ -45,6 +51,11 @@ const api: SauvegardeProAPI = {
       const ecouteur = (_event: Electron.IpcRendererEvent, d: DemandeConfirmationMiroir): void => cb(d)
       ipcRenderer.on(CANAUX_IPC.evenementConfirmationMiroir, ecouteur)
       return () => ipcRenderer.removeListener(CANAUX_IPC.evenementConfirmationMiroir, ecouteur)
+    },
+    surMiseAJour: (cb: (e: EtatMiseAJour) => void) => {
+      const ecouteur = (_event: Electron.IpcRendererEvent, e: EtatMiseAJour): void => cb(e)
+      ipcRenderer.on(CANAUX_IPC.evenementMiseAJour, ecouteur)
+      return () => ipcRenderer.removeListener(CANAUX_IPC.evenementMiseAJour, ecouteur)
     }
   }
 }

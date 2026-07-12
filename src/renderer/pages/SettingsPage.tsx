@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Save } from 'lucide-react'
+import { CheckCircle2, DownloadCloud, Loader2, RefreshCw, RotateCw, Save, TriangleAlert } from 'lucide-react'
 import { useAppStore } from '../state/store'
 import type { Parametres } from '@shared/types'
 import { PARAMETRES_DEFAUT } from '@shared/types'
@@ -97,6 +97,8 @@ export default function SettingsPage() {
         />
       </Section>
 
+      <SectionMiseAJour />
+
       <div className="flex items-center gap-3">
         <button
           onClick={() => void enregistrer()}
@@ -107,6 +109,109 @@ export default function SettingsPage() {
         {enregistre && <span className="text-sm text-emerald-400">Parametres enregistres.</span>}
       </div>
     </div>
+  )
+}
+
+function SectionMiseAJour() {
+  const miseAJour = useAppStore((e) => e.miseAJour)
+  const chargerEtatMiseAJour = useAppStore((e) => e.chargerEtatMiseAJour)
+  const verifierMiseAJour = useAppStore((e) => e.verifierMiseAJour)
+  const telechargerMiseAJour = useAppStore((e) => e.telechargerMiseAJour)
+  const installerMiseAJour = useAppStore((e) => e.installerMiseAJour)
+
+  useEffect(() => {
+    void chargerEtatMiseAJour()
+  }, [])
+
+  const phase = miseAJour?.phase ?? 'inactif'
+
+  return (
+    <Section titre="Mises a jour">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-slate-300">
+          Version installee : <span className="font-mono text-slate-100">{miseAJour?.versionActuelle ?? '...'}</span>
+        </span>
+        {(phase === 'inactif' || phase === 'a_jour' || phase === 'erreur') && (
+          <button
+            onClick={() => void verifierMiseAJour()}
+            className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
+          >
+            <RefreshCw size={15} /> Rechercher une mise a jour
+          </button>
+        )}
+      </div>
+
+      {phase === 'indisponible_dev' && (
+        <p className="text-sm text-slate-500">
+          Recherche de mise a jour indisponible en mode developpement (necessite une version installee via
+          l'installateur).
+        </p>
+      )}
+
+      {phase === 'verification' && (
+        <p className="flex items-center gap-2 text-sm text-slate-400">
+          <Loader2 size={15} className="animate-spin" /> Recherche en cours...
+        </p>
+      )}
+
+      {phase === 'a_jour' && (
+        <p className="flex items-center gap-2 text-sm text-emerald-400">
+          <CheckCircle2 size={15} /> SauvegardePro est a jour.
+        </p>
+      )}
+
+      {phase === 'disponible' && (
+        <div className="flex flex-col gap-2 rounded-lg border border-blue-800 bg-blue-950/40 p-3">
+          <p className="text-sm text-blue-200">
+            Version {miseAJour?.versionDisponible} disponible sur GitHub.
+          </p>
+          {miseAJour?.notesVersion && (
+            <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap text-xs text-slate-400">
+              {miseAJour.notesVersion}
+            </pre>
+          )}
+          <button
+            onClick={() => void telechargerMiseAJour()}
+            className="flex w-fit items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500"
+          >
+            <DownloadCloud size={15} /> Telecharger la mise a jour
+          </button>
+        </div>
+      )}
+
+      {phase === 'telechargement' && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-slate-300">Telechargement en cours...</p>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+            <div
+              className="h-full bg-blue-600 transition-all"
+              style={{ width: `${miseAJour?.progressionPourcent ?? 0}%` }}
+            />
+          </div>
+          <span className="text-xs text-slate-500">{miseAJour?.progressionPourcent ?? 0}%</span>
+        </div>
+      )}
+
+      {phase === 'pret' && (
+        <div className="flex items-center justify-between rounded-lg border border-emerald-800 bg-emerald-950/40 p-3">
+          <span className="text-sm text-emerald-300">
+            Version {miseAJour?.versionDisponible} prete. Redemarrage necessaire pour l'installer.
+          </span>
+          <button
+            onClick={() => void installerMiseAJour()}
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+          >
+            <RotateCw size={15} /> Installer et redemarrer
+          </button>
+        </div>
+      )}
+
+      {phase === 'erreur' && (
+        <p className="flex items-center gap-2 text-sm text-red-400">
+          <TriangleAlert size={15} /> {miseAJour?.message ?? 'Erreur lors de la verification.'}
+        </p>
+      )}
+    </Section>
   )
 }
 

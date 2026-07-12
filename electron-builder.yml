@@ -8,6 +8,11 @@ directories:
 
 asar: true
 
+publish:
+  provider: github
+  owner: suceunq
+  repo: SauvegardePro
+
 win:
   target:
     - target: nsis

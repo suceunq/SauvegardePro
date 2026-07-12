@@ -4,6 +4,7 @@ import type { RunsRepo } from '../db/runsRepo'
 import type { SettingsRepo } from '../db/settingsRepo'
 import type { NetworkLocationsRepo } from '../db/networkLocationsRepo'
 import type { BackupService } from '../app/backupService'
+import type { GestionnaireMiseAJour } from '../updater'
 
 export interface DependancesIpc {
   jobsRepo: JobsRepo
@@ -11,5 +12,6 @@ export interface DependancesIpc {
   settingsRepo: SettingsRepo
   networkLocationsRepo: NetworkLocationsRepo
   backupService: BackupService
+  gestionnaireMiseAJour: GestionnaireMiseAJour
   fenetrePrincipale: () => BrowserWindow | null
 }

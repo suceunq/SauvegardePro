@@ -193,3 +193,22 @@ export interface DemandeConfirmationMiroir {
   fichiersConnus: number
   pourcentage: number
 }
+
+export type PhaseMiseAJour =
+  | 'inactif'
+  | 'verification'
+  | 'disponible'
+  | 'a_jour'
+  | 'telechargement'
+  | 'pret'
+  | 'erreur'
+  | 'indisponible_dev'
+
+export interface EtatMiseAJour {
+  phase: PhaseMiseAJour
+  versionActuelle: string
+  versionDisponible: string | null
+  notesVersion: string | null
+  progressionPourcent: number | null
+  message: string | null
+}

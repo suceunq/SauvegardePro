@@ -4,6 +4,7 @@ import type {
   DemandeConfirmationMiroir,
   EmplacementReseau,
   EntreeJournal,
+  EtatMiseAJour,
   Job,
   LecteurDetecte,
   NouveauJob,
@@ -30,6 +31,7 @@ interface EtatApp {
   runIdJournal: number | null
   chargement: boolean
   ecouteursInitialises: boolean
+  miseAJour: EtatMiseAJour | null
 
   allerA(page: Page): void
   editerJob(job: Job | null): void
@@ -55,6 +57,11 @@ interface EtatApp {
   chargerJournal(runId: number): Promise<void>
   confirmerMiroir(jobId: number, runId: number): Promise<void>
 
+  chargerEtatMiseAJour(): Promise<void>
+  verifierMiseAJour(): Promise<void>
+  telechargerMiseAJour(): Promise<void>
+  installerMiseAJour(): Promise<void>
+
   initialiserEcouteurs(): void
 }
 
@@ -74,6 +81,7 @@ export const useAppStore = create<EtatApp>((set, get) => ({
   runIdJournal: null,
   chargement: false,
   ecouteursInitialises: false,
+  miseAJour: null,
 
   allerA: (page) => set({ page }),
   editerJob: (job) => set({ jobEnEdition: job, page: 'nouvelle' }),
@@ -165,6 +173,24 @@ export const useAppStore = create<EtatApp>((set, get) => ({
     set((etat) => ({ demandesConfirmation: etat.demandesConfirmation.filter((d) => d.runId !== runId) }))
   },
 
+  chargerEtatMiseAJour: async () => {
+    const miseAJour = await window.sauvegardePro.misesAJour.etatActuel()
+    set({ miseAJour })
+  },
+
+  verifierMiseAJour: async () => {
+    const miseAJour = await window.sauvegardePro.misesAJour.verifier()
+    set({ miseAJour })
+  },
+
+  telechargerMiseAJour: async () => {
+    await window.sauvegardePro.misesAJour.telecharger()
+  },
+
+  installerMiseAJour: async () => {
+    await window.sauvegardePro.misesAJour.installer()
+  },
+
   initialiserEcouteurs: () => {
     if (get().ecouteursInitialises) return
     set({ ecouteursInitialises: true })
@@ -183,6 +209,10 @@ export const useAppStore = create<EtatApp>((set, get) => ({
 
     window.sauvegardePro.evenements.surDemandeConfirmationMiroir((d: DemandeConfirmationMiroir) => {
       set((etat) => ({ demandesConfirmation: [...etat.demandesConfirmation.filter((x) => x.runId !== d.runId), d] }))
+    })
+
+    window.sauvegardePro.evenements.surMiseAJour((e: EtatMiseAJour) => {
+      set({ miseAJour: e })
     })
   }
 }))

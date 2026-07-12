@@ -3,6 +3,7 @@ import type {
   DemandeConfirmationMiroir,
   EmplacementReseau,
   EntreeJournal,
+  EtatMiseAJour,
   Job,
   LecteurDetecte,
   NouveauJob,
@@ -35,9 +36,15 @@ export const CANAUX_IPC = {
   settingsObtenir: 'settings:obtenir',
   settingsEnregistrer: 'settings:enregistrer',
 
+  misesAJourEtat: 'misesAJour:etat',
+  misesAJourVerifier: 'misesAJour:verifier',
+  misesAJourTelecharger: 'misesAJour:telecharger',
+  misesAJourInstaller: 'misesAJour:installer',
+
   evenementProgression: 'evenement:progression',
   evenementLecteurs: 'evenement:lecteurs',
-  evenementConfirmationMiroir: 'evenement:confirmationMiroir'
+  evenementConfirmationMiroir: 'evenement:confirmationMiroir',
+  evenementMiseAJour: 'evenement:miseAJour'
 } as const
 
 export interface SauvegardeProAPI {
@@ -68,9 +75,16 @@ export interface SauvegardeProAPI {
     obtenir(): Promise<Parametres>
     enregistrer(parametres: Parametres): Promise<void>
   }
+  misesAJour: {
+    etatActuel(): Promise<EtatMiseAJour>
+    verifier(): Promise<EtatMiseAJour>
+    telecharger(): Promise<void>
+    installer(): Promise<void>
+  }
   evenements: {
     surProgression(cb: (p: ProgressionRun) => void): () => void
     surLecteursChanges(cb: (lecteurs: LecteurDetecte[]) => void): () => void
     surDemandeConfirmationMiroir(cb: (d: DemandeConfirmationMiroir) => void): () => void
+    surMiseAJour(cb: (e: EtatMiseAJour) => void): () => void
   }
 }

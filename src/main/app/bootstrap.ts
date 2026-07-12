@@ -11,8 +11,9 @@ import { detecterRunsInterrompus, preparerReprise } from '../backup/resumeManage
 import { SurveillantLecteurs } from '../discovery/driveDetector'
 import { Planificateur, jobsADemarrage } from '../scheduler/scheduler'
 import { enregistrerTousLesIpc } from '../ipc'
+import { GestionnaireMiseAJour } from '../updater'
 import { CANAUX_IPC } from '@shared/ipc'
-import type { DemandeConfirmationMiroir, ProgressionRun } from '@shared/types'
+import type { DemandeConfirmationMiroir, EtatMiseAJour, ProgressionRun } from '@shared/types'
 
 export interface ApplicationDemarree {
   arreter(): Promise<void>
@@ -37,8 +38,10 @@ export async function demarrerApplication(): Promise<ApplicationDemarree> {
   const emettreProgression = (p: ProgressionRun): void => diffuserATouteFenetre(CANAUX_IPC.evenementProgression, p)
   const emettreConfirmation = (d: DemandeConfirmationMiroir): void =>
     diffuserATouteFenetre(CANAUX_IPC.evenementConfirmationMiroir, d)
+  const emettreMiseAJour = (e: EtatMiseAJour): void => diffuserATouteFenetre(CANAUX_IPC.evenementMiseAJour, e)
 
   const backupService = new BackupService(db, jobsRepo, runsRepo, manifestRepo, settingsRepo, emettreProgression, emettreConfirmation)
+  const gestionnaireMiseAJour = new GestionnaireMiseAJour(emettreMiseAJour)
 
   enregistrerTousLesIpc({
     jobsRepo,
@@ -46,6 +49,7 @@ export async function demarrerApplication(): Promise<ApplicationDemarree> {
     settingsRepo,
     networkLocationsRepo,
     backupService,
+    gestionnaireMiseAJour,
     fenetrePrincipale: () => BrowserWindow.getAllWindows()[0] ?? null
   })
 
@@ -74,6 +78,9 @@ export async function demarrerApplication(): Promise<ApplicationDemarree> {
     (job) => void backupService.executerJob(job)
   )
   planificateur.demarrer()
+
+  // Verification silencieuse au demarrage : signale une mise a jour disponible sans rien telecharger.
+  void gestionnaireMiseAJour.verifier()
 
   return {
     async arreter(): Promise<void> {
