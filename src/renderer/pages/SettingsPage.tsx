@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, DownloadCloud, Loader2, RefreshCw, RotateCw, Save, TriangleAlert } from 'lucide-react'
 import { useAppStore } from '../state/store'
+import { formaterNotesVersion } from '../lib/releaseNotes'
 import type { Parametres } from '@shared/types'
 import { PARAMETRES_DEFAUT } from '@shared/types'
 
@@ -167,7 +168,7 @@ function SectionMiseAJour() {
           </p>
           {miseAJour?.notesVersion && (
             <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap text-xs text-slate-400">
-              {miseAJour.notesVersion}
+              {formaterNotesVersion(miseAJour.notesVersion)}
             </pre>
           )}
           <button
