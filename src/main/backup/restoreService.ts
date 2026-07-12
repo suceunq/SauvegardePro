@@ -1,4 +1,5 @@
 import { copyFile, mkdir, stat } from 'node:fs/promises'
+import { constants } from 'node:fs'
 import { basename, dirname, join, relative } from 'node:path'
 import type { ResultatRestauration, RunFile } from '@shared/types'
 import { hacherFichier } from './integrity'
@@ -19,7 +20,15 @@ export async function restaurerFichiers(
       if (!rel || rel.startsWith('..')) rel = basename(fichier.cheminSource)
       const cible = join(destination, rel)
       await mkdir(dirname(cible), { recursive: true })
-      await copyFile(fichier.cheminDestination, cible)
+      try {
+        await copyFile(fichier.cheminDestination, cible, constants.COPYFILE_EXCL)
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
+          resultat.fichiersIgnores++
+          continue
+        }
+        throw error
+      }
       if (fichier.hashSource) {
         const hash = await hacherFichier(cible)
         if (hash !== fichier.hashSource) throw new Error('verification SHA-256 echouee')
