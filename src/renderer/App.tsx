@@ -17,12 +17,19 @@ export default function App() {
   const page = useAppStore((e) => e.page)
   const initialiserEcouteurs = useAppStore((e) => e.initialiserEcouteurs)
   const chargerEtatMiseAJour = useAppStore((e) => e.chargerEtatMiseAJour)
+  const chargerParametres = useAppStore((e) => e.chargerParametres)
+  const themeSombre = useAppStore((e) => e.parametres?.themeSombre ?? true)
   const miseAJour = useAppStore((e) => e.miseAJour)
 
   useEffect(() => {
     initialiserEcouteurs()
     void chargerEtatMiseAJour()
+    void chargerParametres()
   }, [])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeSombre ? 'dark' : 'light'
+  }, [themeSombre])
 
   useEffect(() => {
     if (miseAJour?.phase === 'disponible') setMiseAJourOuverte(true)
@@ -32,9 +39,9 @@ export default function App() {
     page !== 'parametres' && (miseAJour?.phase === 'disponible' || miseAJour?.phase === 'pret')
 
   return (
-    <div className="flex h-screen w-screen bg-slate-950 text-slate-100">
+    <div className="sauvegarde-shell flex h-screen w-screen bg-slate-950 text-slate-100">
       <Sidebar ouvrirAPropos={() => setAProposOuvert(true)} />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="sauvegarde-content flex flex-1 flex-col overflow-hidden">
         {banniereVisible && (
           <button
             onClick={() => setMiseAJourOuverte(true)}
@@ -47,7 +54,7 @@ export default function App() {
             <span className="underline">Voir dans Parametres</span>
           </button>
         )}
-        <main className="flex-1 overflow-y-auto">
+        <main className="sauvegarde-main flex-1 overflow-y-auto">
           {page === 'tableau' && <Dashboard />}
           {page === 'sauvegardes' && <JobsPage />}
           {page === 'nouvelle' && <NewJobPage />}
