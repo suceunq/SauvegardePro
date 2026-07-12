@@ -19,7 +19,7 @@ win:
       arch:
         - x64
   icon: build/icon.ico
-  artifactName: ${productName}-${version}-Installation.${ext}
+  artifactName: ${productName}-Installation.${ext}
 
 nsis:
   oneClick: false
@@ -31,7 +31,7 @@ nsis:
   shortcutName: SauvegardePro
   language: "1036"
   displayLanguageSelector: false
-  artifactName: ${productName}-${version}-Installation.${ext}
+  artifactName: ${productName}-Installation.${ext}
   uninstallDisplayName: SauvegardePro
 
 fileAssociations: []
