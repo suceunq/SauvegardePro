@@ -8,6 +8,12 @@ directories:
 
 asar: true
 
+files:
+  - out/**/*
+  - package.json
+  - node_modules/**/*
+  - "!dist{,/**/*}"
+
 publish:
   provider: github
   owner: suceunq

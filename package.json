@@ -1,6 +1,6 @@
 {
   "name": "sauvegardepro",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Logiciel de sauvegarde et de synchronisation de donnees",
   "main": "./out/main/index.js",
   "author": "SauvegardePro",
@@ -11,7 +11,7 @@
     "dev": "electron-vite dev",
     "build": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && electron-vite build",
     "start": "electron-vite preview",
-    "dist": "npm run build && electron-builder --win nsis",
+    "dist": "npm run icon && npm run build && electron-builder --win nsis",
     "icon": "node scripts/generate-icon.mjs"
   },
   "devDependencies": {
