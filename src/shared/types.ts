@@ -216,5 +216,7 @@ export interface EtatMiseAJour {
   versionDisponible: string | null
   notesVersion: string | null
   progressionPourcent: number | null
+  octetsParSeconde?: number | null
+  secondesRestantes?: number | null
   message: string | null
 }

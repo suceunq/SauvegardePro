@@ -30,6 +30,8 @@ export class GestionnaireMiseAJour {
       versionDisponible: null,
       notesVersion: null,
       progressionPourcent: null,
+      octetsParSeconde: null,
+      secondesRestantes: null,
       message: null
     }
 
@@ -50,7 +52,9 @@ export class GestionnaireMiseAJour {
       this.definirEtat({ phase: 'a_jour', versionDisponible: null, message: null })
     })
     autoUpdater.on('download-progress', (progression) => {
-      this.definirEtat({ phase: 'telechargement', progressionPourcent: Math.round(progression.percent) })
+      const vitesse = progression.bytesPerSecond || 0
+      const restant = vitesse > 0 ? Math.max(0, Math.round((progression.total - progression.transferred) / vitesse)) : null
+      this.definirEtat({ phase: 'telechargement', progressionPourcent: Math.round(progression.percent), octetsParSeconde: vitesse, secondesRestantes: restant })
     })
     autoUpdater.on('update-downloaded', () => {
       this.definirEtat({ phase: 'pret', progressionPourcent: 100 })
