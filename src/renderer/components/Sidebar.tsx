@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListChecks, PlusCircle, History, Settings, Info } from 'lucide-react'
+import { LayoutDashboard, ListChecks, PlusCircle, History, Settings, Info, Mail } from 'lucide-react'
 import { useAppStore, type Page } from '../state/store'
 
 const ELEMENTS: Array<{ page: Page; libelle: string; icone: typeof LayoutDashboard }> = [
@@ -9,7 +9,7 @@ const ELEMENTS: Array<{ page: Page; libelle: string; icone: typeof LayoutDashboa
   { page: 'parametres', libelle: 'Parametres', icone: Settings }
 ]
 
-export default function Sidebar({ ouvrirAPropos }: { ouvrirAPropos: () => void }) {
+export default function Sidebar({ ouvrirAPropos, ouvrirSuggestion }: { ouvrirAPropos: () => void; ouvrirSuggestion: () => void }) {
   const page = useAppStore((e) => e.page)
   const allerA = useAppStore((e) => e.allerA)
   const editerJob = useAppStore((e) => e.editerJob)
@@ -34,7 +34,7 @@ export default function Sidebar({ ouvrirAPropos }: { ouvrirAPropos: () => void }
           </button>
         ))}
       </nav>
-      <div className="mt-auto px-3 py-4"><button onClick={ouvrirAPropos} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-900 hover:text-slate-100"><Info size={18} />À propos</button></div>
+      <div className="mt-auto grid gap-1 px-3 py-4"><button onClick={ouvrirSuggestion} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-blue-300 hover:bg-blue-950"><Mail size={18} />Suggestion / Correction</button><button onClick={ouvrirAPropos} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-900 hover:text-slate-100"><Info size={18} />À propos</button></div>
     </aside>
   )
 }

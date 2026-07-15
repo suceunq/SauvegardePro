@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import ConfirmationMiroirModal from './components/ConfirmationMiroirModal'
 import UpdateDialog from './components/UpdateDialog'
 import AboutDialog from './components/AboutDialog'
+import FeedbackDialog from './components/FeedbackDialog'
 import Dashboard from './pages/Dashboard'
 import JobsPage from './pages/JobsPage'
 import NewJobPage from './pages/NewJobPage'
@@ -14,6 +15,7 @@ import { useAppStore } from './state/store'
 export default function App() {
   const [miseAJourOuverte, setMiseAJourOuverte] = useState(false)
   const [aProposOuvert, setAProposOuvert] = useState(false)
+  const [suggestionOuverte, setSuggestionOuverte] = useState(false)
   const page = useAppStore((e) => e.page)
   const initialiserEcouteurs = useAppStore((e) => e.initialiserEcouteurs)
   const chargerEtatMiseAJour = useAppStore((e) => e.chargerEtatMiseAJour)
@@ -40,7 +42,7 @@ export default function App() {
 
   return (
     <div className="sauvegarde-shell flex h-screen w-screen bg-slate-950 text-slate-100">
-      <Sidebar ouvrirAPropos={() => setAProposOuvert(true)} />
+      <Sidebar ouvrirAPropos={() => setAProposOuvert(true)} ouvrirSuggestion={() => setSuggestionOuverte(true)} />
       <div className="sauvegarde-content flex flex-1 flex-col overflow-hidden">
         {banniereVisible && (
           <button
@@ -65,6 +67,7 @@ export default function App() {
       <ConfirmationMiroirModal />
       <UpdateDialog ouvert={miseAJourOuverte} fermer={() => setMiseAJourOuverte(false)} />
       <AboutDialog ouvert={aProposOuvert} fermer={() => setAProposOuvert(false)} />
+      <FeedbackDialog ouvert={suggestionOuverte} fermer={() => setSuggestionOuverte(false)} />
     </div>
   )
 }
