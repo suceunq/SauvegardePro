@@ -190,6 +190,7 @@ export async function confirmerSuppressionsMiroir(
   if (!run || run.statut !== 'confirmation_requise') {
     throw new Error('Ce run ne necessite plus de confirmation')
   }
+  if (run.jobId !== job.id) throw new Error('Le run ne correspond pas a ce job')
 
   runsRepo.changerStatut(run.id, 'en_cours')
   const ctx: ContexteExecution = { db, runsRepo, job, run, emettre, signal }

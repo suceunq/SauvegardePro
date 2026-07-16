@@ -198,6 +198,7 @@ export interface DemandeConfirmationMiroir {
   suppressionsPrevues: number
   fichiersConnus: number
   pourcentage: number
+  apercuSuppressions: string[]
 }
 
 export type PhaseMiseAJour =
