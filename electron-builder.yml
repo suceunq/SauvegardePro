@@ -29,6 +29,9 @@ win:
 
 nsis:
   oneClick: false
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
   perMachine: false
   allowToChangeInstallationDirectory: true
   allowElevation: true
