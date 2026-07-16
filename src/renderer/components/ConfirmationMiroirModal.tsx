@@ -28,6 +28,18 @@ export default function ConfirmationMiroirModal() {
           Verifiez que la source est bien accessible et complete avant de confirmer. Les copies et mises a jour ont deja ete
           appliquees ; seules les suppressions sont en attente.
         </p>
+        {demande.apercuSuppressions.length > 0 && (
+          <div className="mt-3 max-h-40 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-400">
+            {demande.apercuSuppressions.map((chemin) => (
+              <div key={chemin} className="truncate py-0.5">{chemin}</div>
+            ))}
+            {demande.suppressionsPrevues > demande.apercuSuppressions.length && (
+              <div className="pt-1 text-slate-500">
+                … et {demande.suppressionsPrevues - demande.apercuSuppressions.length} autre(s)
+              </div>
+            )}
+          </div>
+        )}
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={() => setDemandes((etat) => ({ demandesConfirmation: etat.demandesConfirmation.filter((d) => d.runId !== demande.runId) }))}

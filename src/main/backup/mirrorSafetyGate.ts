@@ -89,7 +89,8 @@ export function evaluerSuppressionsMiroir(
         jobId,
         suppressionsPrevues: suppressionsFiltrees.length,
         fichiersConnus,
-        pourcentage: Math.round(pourcentage)
+        pourcentage: Math.round(pourcentage),
+        apercuSuppressions: suppressionsFiltrees.slice(0, 20)
       }
     }
   }

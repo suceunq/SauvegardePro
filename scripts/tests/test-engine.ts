@@ -17,6 +17,8 @@ import { executerSynchronisationMiroir, confirmerSuppressionsMiroir } from '../.
 import { preparerReprise } from '../../src/main/backup/resumeManager'
 import { copierFichierAtomique, cheminTemporaire } from '../../src/main/backup/copyEngine'
 import { verifierIntegriteFichier } from '../../src/main/backup/integrity'
+import { restaurerFichiers } from '../../src/main/backup/restoreService'
+import { validerNouveauJob } from '../../src/main/ipc/validation'
 import { PARAMETRES_AVANCES_DEFAUT } from '../../src/shared/types'
 import type { NouveauJob, ProgressionRun } from '../../src/shared/types'
 
@@ -301,6 +303,47 @@ async function main(): Promise<void> {
     })
     const dureeMs = Date.now() - debut
     assert.ok(dureeMs >= 1500, `la copie limitee a ${limiteOctetsParSeconde} o/s aurait du prendre du temps (mesure: ${dureeMs}ms)`)
+  })
+
+  await scenario('Un scan incomplet echoue sans purger la derniere bonne version', async () => {
+    const source = join(RACINE, 'source7')
+    const dest = join(RACINE, 'dest7')
+    await mkdir(source, { recursive: true })
+    await writeFile(join(source, 'important.txt'), 'version sure')
+    const job = jobsRepo.creer(jobParDefaut({
+      nom: 'scan-incomplet', sources: [source], destination: dest, mode: 'complete',
+      parametres: { ...PARAMETRES_AVANCES_DEFAUT, nombreVersionsAConserver: 1 }
+    }))
+    const bonRunId = await executerSauvegardeComplete(db, runsRepo, manifestRepo, job, progressionSilencieuse, new AbortController().signal)
+    const bonneVersion = runsRepo.versionDossierRun(bonRunId)!
+
+    await rm(source, { recursive: true, force: true })
+    const runIncompletId = await executerSauvegardeComplete(db, runsRepo, manifestRepo, job, progressionSilencieuse, new AbortController().signal)
+    assert.equal(runsRepo.obtenirRun(runIncompletId)?.statut, 'echec')
+    assert.ok(existsSync(join(dest, 'versions', bonneVersion)), 'la derniere bonne version doit etre conservee')
+  })
+
+  await scenario('La restauration multi-source preserve les dossiers racine et evite les collisions', async () => {
+    const sourceA = join(RACINE, 'source8-a')
+    const sourceB = join(RACINE, 'source8-b')
+    const dest = join(RACINE, 'dest8')
+    const restauration = join(RACINE, 'restauration8')
+    await mkdir(sourceA, { recursive: true })
+    await mkdir(sourceB, { recursive: true })
+    await writeFile(join(sourceA, 'meme-nom.txt'), 'contenu A')
+    await writeFile(join(sourceB, 'meme-nom.txt'), 'contenu B')
+    const job = jobsRepo.creer(jobParDefaut({ nom: 'multi-source', sources: [sourceA, sourceB], destination: dest }))
+    const runId = await executerSauvegardeComplete(db, runsRepo, manifestRepo, job, progressionSilencieuse, new AbortController().signal)
+    const resultat = await restaurerFichiers(runsRepo.fichiersDuRun(runId), restauration, job.sources)
+    assert.equal(resultat.fichiersRestaures, 2)
+    assert.equal(await readFile(join(restauration, 'source8-a', 'meme-nom.txt'), 'utf8'), 'contenu A')
+    assert.equal(await readFile(join(restauration, 'source8-b', 'meme-nom.txt'), 'utf8'), 'contenu B')
+  })
+
+  await scenario('La validation refuse une destination imbriquee dans une source', async () => {
+    const source = join(RACINE, 'source9')
+    const job = jobParDefaut({ sources: [source], destination: join(source, 'sauvegardes') })
+    assert.throws(() => validerNouveauJob(job), /ne doivent pas se chevaucher/)
   })
 
   await db.fermer()

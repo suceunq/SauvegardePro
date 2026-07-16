@@ -176,6 +176,15 @@ export class RunsRepo {
       .map(versRun)
   }
 
+  scanIncomplet(runId: number): boolean {
+    return !!this.db.get(
+      `SELECT 1 FROM run_log
+       WHERE run_id = ? AND niveau = 'avertissement' AND message LIKE 'Impossible de lire %'
+       LIMIT 1`,
+      [runId]
+    )
+  }
+
   // --- run_files (plan-then-execute + reprise) ---
 
   planifierFichiers(

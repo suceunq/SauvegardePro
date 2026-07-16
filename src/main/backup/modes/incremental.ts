@@ -112,11 +112,16 @@ export async function executerSauvegardeIncrementielle(
     await executerCopies(ctx)
 
     const echecs = runsRepo.fichiersParEtat(run.id, 'failed').length
-    manifestRepo.enregistrer(job.id, run.id, construireEntreesManifeste(runsRepo.fichiersDuRun(run.id), dossierVersion))
-    runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? `${echecs} fichier(s) en erreur` : null)
-    runsRepo.journaliser(run.id, 'info', 'Sauvegarde incrementielle terminee')
-
-    await purgerAnciennesVersions(job.id, job.destination, runsRepo, job.parametres.nombreVersionsAConserver)
+    if (runsRepo.scanIncomplet(run.id)) {
+      const message = 'Sauvegarde incomplete : au moins un fichier ou dossier source n\'a pas pu etre lu. Les anciennes versions sont conservees.'
+      runsRepo.changerStatut(run.id, 'echec', message)
+      runsRepo.journaliser(run.id, 'erreur', message)
+    } else {
+      manifestRepo.enregistrer(job.id, run.id, construireEntreesManifeste(runsRepo.fichiersDuRun(run.id), dossierVersion))
+      runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? `${echecs} fichier(s) en erreur` : null)
+      runsRepo.journaliser(run.id, 'info', 'Sauvegarde incrementielle terminee')
+      await purgerAnciennesVersions(job.id, job.destination, runsRepo, job.parametres.nombreVersionsAConserver)
+    }
   } catch (erreur) {
     await gererErreurRun(runsRepo, run.id, erreur)
   } finally {
