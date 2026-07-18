@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DownloadCloud } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import ConfirmationMiroirModal from './components/ConfirmationMiroirModal'
 import UpdateDialog from './components/UpdateDialog'
 import AboutDialog from './components/AboutDialog'
 import FeedbackDialog from './components/FeedbackDialog'
+import WelcomeDialog from './components/WelcomeDialog'
 import Dashboard from './pages/Dashboard'
 import JobsPage from './pages/JobsPage'
 import NewJobPage from './pages/NewJobPage'
@@ -18,11 +19,15 @@ export default function App() {
   const [miseAJourOuverte, setMiseAJourOuverte] = useState(false)
   const [aProposOuvert, setAProposOuvert] = useState(false)
   const [suggestionOuverte, setSuggestionOuverte] = useState(false)
+  const [bienvenueOuverte, setBienvenueOuverte] = useState(false)
+  const [bienvenueEvaluee, setBienvenueEvaluee] = useState(false)
+  const miseAJourAutoOuverte = useRef(false)
   const page = useAppStore((e) => e.page)
   const initialiserEcouteurs = useAppStore((e) => e.initialiserEcouteurs)
   const chargerEtatMiseAJour = useAppStore((e) => e.chargerEtatMiseAJour)
   const chargerParametres = useAppStore((e) => e.chargerParametres)
   const themeSombre = useAppStore((e) => e.parametres?.themeSombre ?? true)
+  const parametres = useAppStore((e) => e.parametres)
   const miseAJour = useAppStore((e) => e.miseAJour)
 
   useEffect(() => {
@@ -41,15 +46,33 @@ export default function App() {
   }, [langue])
 
   useEffect(() => {
-    if (miseAJour?.phase === 'disponible') setMiseAJourOuverte(true)
-  }, [miseAJour?.phase, miseAJour?.versionDisponible])
+    if (!parametres || bienvenueEvaluee) return
+    setBienvenueOuverte(parametres.afficherBienvenueAuDemarrage)
+    setBienvenueEvaluee(true)
+  }, [parametres, bienvenueEvaluee])
+
+  useEffect(() => {
+    if (
+      bienvenueEvaluee &&
+      !bienvenueOuverte &&
+      miseAJour?.phase === 'disponible' &&
+      !miseAJourAutoOuverte.current
+    ) {
+      miseAJourAutoOuverte.current = true
+      setMiseAJourOuverte(true)
+    }
+  }, [bienvenueEvaluee, bienvenueOuverte, miseAJour?.phase, miseAJour?.versionDisponible])
 
   const banniereVisible =
     page !== 'parametres' && (miseAJour?.phase === 'disponible' || miseAJour?.phase === 'pret')
 
   return (
     <div className="sauvegarde-shell flex h-screen w-screen bg-slate-950 text-slate-100">
-      <Sidebar ouvrirAPropos={() => setAProposOuvert(true)} ouvrirSuggestion={() => setSuggestionOuverte(true)} />
+      <Sidebar
+        ouvrirAPropos={() => setAProposOuvert(true)}
+        ouvrirSuggestion={() => setSuggestionOuverte(true)}
+        ouvrirBienvenue={() => setBienvenueOuverte(true)}
+      />
       <div className="sauvegarde-content flex flex-1 flex-col overflow-hidden">
         {banniereVisible && (
           <button
@@ -75,6 +98,7 @@ export default function App() {
       <UpdateDialog ouvert={miseAJourOuverte} fermer={() => setMiseAJourOuverte(false)} />
       <AboutDialog ouvert={aProposOuvert} fermer={() => setAProposOuvert(false)} />
       <FeedbackDialog ouvert={suggestionOuverte} fermer={() => setSuggestionOuverte(false)} />
+      <WelcomeDialog ouvert={bienvenueOuverte} fermer={() => setBienvenueOuverte(false)} />
     </div>
   )
 }

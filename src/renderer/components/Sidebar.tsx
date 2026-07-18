@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListChecks, PlusCircle, History, Settings, Info, Mail } from 'lucide-react'
+import { LayoutDashboard, ListChecks, PlusCircle, History, Settings, Info, Mail, HeartHandshake } from 'lucide-react'
 import { useAppStore, type Page } from '../state/store'
 import { useI18n } from '../i18n'
 import type { CleTraduction } from '@shared/i18n'
@@ -11,7 +11,15 @@ const ELEMENTS: Array<{ page: Page; libelle: CleTraduction; icone: typeof Layout
   { page: 'parametres', libelle: 'nav.settings', icone: Settings }
 ]
 
-export default function Sidebar({ ouvrirAPropos, ouvrirSuggestion }: { ouvrirAPropos: () => void; ouvrirSuggestion: () => void }) {
+export default function Sidebar({
+  ouvrirAPropos,
+  ouvrirSuggestion,
+  ouvrirBienvenue
+}: {
+  ouvrirAPropos: () => void
+  ouvrirSuggestion: () => void
+  ouvrirBienvenue: () => void
+}) {
   const { t } = useI18n()
   const page = useAppStore((e) => e.page)
   const allerA = useAppStore((e) => e.allerA)
@@ -37,7 +45,7 @@ export default function Sidebar({ ouvrirAPropos, ouvrirSuggestion }: { ouvrirAPr
           </button>
         ))}
       </nav>
-      <div className="mt-auto grid gap-1 px-3 py-4"><button onClick={ouvrirSuggestion} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-blue-300 hover:bg-blue-950"><Mail size={18} />{t('nav.feedback')}</button><button onClick={ouvrirAPropos} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-900 hover:text-slate-100"><Info size={18} />{t('nav.about')}</button></div>
+      <div className="mt-auto grid gap-1 px-3 py-4"><button onClick={ouvrirBienvenue} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-rose-300 hover:bg-rose-950/40"><HeartHandshake size={18} />{t('nav.support')}</button><button onClick={ouvrirSuggestion} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-blue-300 hover:bg-blue-950"><Mail size={18} />{t('nav.feedback')}</button><button onClick={ouvrirAPropos} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-900 hover:text-slate-100"><Info size={18} />{t('nav.about')}</button></div>
     </aside>
   )
 }

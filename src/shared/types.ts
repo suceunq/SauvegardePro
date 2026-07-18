@@ -1,3 +1,6 @@
+import { URL_DON_PAYPAL_DEFAUT } from './donation'
+import type { PreferenceLangue } from './i18n'
+
 export type ModeSauvegarde = 'complete' | 'incrementielle' | 'miroir'
 
 export type TypeDeclenchement = 'manuel' | 'planifie' | 'demarrage'
@@ -170,6 +173,8 @@ export interface Parametres {
   verifierIntegriteParDefaut: boolean
   notifications: Notifications
   demarrerAvecWindows: boolean
+  afficherBienvenueAuDemarrage: boolean
+  urlDonPaypal: string
   themeSombre: boolean
   conserverJournauxJours: number
   algorithmeHash: 'sha256'
@@ -182,6 +187,8 @@ export const PARAMETRES_DEFAUT: Parametres = {
   verifierIntegriteParDefaut: true,
   notifications: { surSucces: true, surEchec: true, surAvertissement: true },
   demarrerAvecWindows: false,
+  afficherBienvenueAuDemarrage: true,
+  urlDonPaypal: URL_DON_PAYPAL_DEFAUT,
   themeSombre: true,
   conserverJournauxJours: 30,
   algorithmeHash: 'sha256'
@@ -223,4 +230,3 @@ export interface EtatMiseAJour {
   secondesRestantes?: number | null
   message: string | null
 }
-import type { PreferenceLangue } from './i18n'
