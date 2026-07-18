@@ -10,9 +10,27 @@ function rendreInline(texte: string, cle: string): ReactNode {
   })
 }
 
+// electron-updater expose le corps des releases GitHub via leur flux Atom, que GitHub prerend en
+// HTML (<p>, <li>, ...) plutot que le Markdown d'origine - on le reduit a du texte brut avant de le
+// passer au rendu ci-dessous, qui attend du Markdown, sinon les balises s'affichent telles quelles.
+function texteSansHtml(texte: string): string {
+  if (!texte.includes('<')) return texte
+  const document = new DOMParser().parseFromString(texte, 'text/html')
+  const lignes: string[] = []
+  document.querySelectorAll('h1, h2, h3, p').forEach((el) => {
+    const contenu = el.textContent?.trim()
+    if (contenu) lignes.push(contenu)
+  })
+  document.querySelectorAll('li').forEach((el) => {
+    const contenu = el.textContent?.trim()
+    if (contenu) lignes.push(`- ${contenu}`)
+  })
+  return lignes.length ? lignes.join('\n') : (document.body.textContent ?? '').trim()
+}
+
 /** Rendu Markdown minimal (titres, listes, gras) sans dependance externe ni injection HTML. */
 export function RenduMarkdownLeger({ texte }: { texte: string }) {
-  const normalise = texte
+  const normalise = texteSansHtml(texte)
     .replace(/\\r\\n|\\n|\\r/g, '\n')
     .replace(/\r\n|\r/g, '\n')
     .trim()
