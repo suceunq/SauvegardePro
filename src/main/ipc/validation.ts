@@ -1,8 +1,10 @@
 import { isAbsolute, relative, resolve } from 'node:path'
 import type { NouveauJob, Parametres } from '@shared/types'
+import { LANGUES } from '../../shared/i18n'
+import { tMain } from '../i18n'
 
-function exiger(condition: unknown, message: string): asserts condition {
-  if (!condition) throw new Error(`Donnees invalides : ${message}`)
+function exiger(condition: unknown, _message: string): asserts condition {
+  if (!condition) throw new Error(tMain('main.invalidPrefix', { detail: tMain('main.invalidData') }))
 }
 
 export function validerId(valeur: unknown, nom = 'identifiant'): asserts valeur is number {
@@ -62,6 +64,7 @@ export function validerNouveauJob(job: unknown): asserts job is NouveauJob {
 export function validerParametres(parametres: unknown): asserts parametres is Parametres {
   exiger(!!parametres && typeof parametres === 'object', 'parametres absents')
   const p = parametres as Parametres
+  exiger(p.langue === 'auto' || LANGUES.includes(p.langue), 'langue incorrecte')
   exiger(p.limiteDebitKoS === null || (Number.isFinite(p.limiteDebitKoS) && p.limiteDebitKoS > 0), 'limite de debit incorrecte')
   exiger(Number.isInteger(p.nombreVersionsParDefaut) && p.nombreVersionsParDefaut >= 1 && p.nombreVersionsParDefaut <= 10_000, 'nombre de versions incorrect')
   exiger(typeof p.verifierIntegriteParDefaut === 'boolean' && typeof p.demarrerAvecWindows === 'boolean' && typeof p.themeSombre === 'boolean', 'option booleenne incorrecte')

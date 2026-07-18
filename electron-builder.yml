@@ -38,7 +38,12 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: SauvegardePro
-  language: "1036"
+  multiLanguageInstaller: true
+  installerLanguages:
+    - fr_FR
+    - en_US
+    - es_ES
+    - de_DE
   displayLanguageSelector: false
   artifactName: ${productName}-Installation.${ext}
   uninstallDisplayName: SauvegardePro

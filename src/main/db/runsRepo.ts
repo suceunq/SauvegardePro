@@ -1,5 +1,6 @@
 import type { Database } from './database'
 import type { EntreeJournal, EtatFichierRun, NiveauJournal, Run, RunFile, StatutRun } from '@shared/types'
+import { tMain } from '../i18n'
 
 interface LigneRun {
   id: number
@@ -74,7 +75,7 @@ export class RunsRepo {
     )
     const id = this.db.dernierIdInsere()
     const run = this.obtenirRun(id)
-    if (!run) throw new Error('Echec de la creation du run')
+    if (!run) throw new Error(tMain('main.createRunFailed'))
     return run
   }
 

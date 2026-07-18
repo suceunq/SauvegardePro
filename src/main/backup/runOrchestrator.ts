@@ -7,10 +7,11 @@ import type { LigneManifest } from '../db/manifestRepo'
 import { copierFichierAtomique } from './copyEngine'
 import { verifierIntegriteFichier } from './integrity'
 import { classifierErreur, decisionPourErreur, attendre, SurveillantDeconnexion } from './errorPolicy'
+import { tMain } from '../i18n'
 
 export class AnnulationError extends Error {
   constructor() {
-    super('Sauvegarde annulee par l\'utilisateur')
+    super(tMain('main.cancelled'))
     this.name = 'AnnulationError'
   }
 }
@@ -73,7 +74,7 @@ async function traiterUnFichier(
         runsRepo.marquerEtatFichier(run.id, fichier.cheminSource, 'verifying')
         const integre = await verifierIntegriteFichier(fichier.cheminDestination, resultat.hash)
         if (!integre) {
-          throw Object.assign(new Error('Echec de la verification d\'integrite apres copie'), { code: 'EINTEGRITY' })
+          throw Object.assign(new Error(tMain('main.integrityCopyFailed')), { code: 'EINTEGRITY' })
         }
       }
 
@@ -92,16 +93,16 @@ async function traiterUnFichier(
       tentative = runsRepo.incrementerTentative(run.id, fichier.cheminSource)
       const decision = decisionPourErreur(classe, tentative, parametres.nombreTentatives)
 
-      runsRepo.journaliser(run.id, 'avertissement', `Erreur sur ${fichier.cheminSource} : ${err.message}`, fichier.cheminSource)
+      runsRepo.journaliser(run.id, 'avertissement', tMain('main.fileError', { path: fichier.cheminSource, error: err.message }), fichier.cheminSource)
 
       if (decision.abandonnerRun) {
-        throw new AbandonRunError(`Disque plein sur la destination : ${err.message}`)
+        throw new AbandonRunError(tMain('main.diskFull', { error: err.message }))
       }
 
       const enRafale = surveillant.enregistrerEchec()
       if (enRafale) {
         throw new AbandonRunError(
-          'Trop d\'echecs consecutifs : la destination semble injoignable (partage reseau deconnecte ?)',
+          tMain('main.destinationDisconnected'),
           true
         )
       }
@@ -113,7 +114,7 @@ async function traiterUnFichier(
 
       runsRepo.marquerEtatFichier(run.id, fichier.cheminSource, 'failed', { derniereErreur: err.message })
       runsRepo.incrementerCompteurs(run.id, { fichiersEnErreur: 1 })
-      runsRepo.journaliser(run.id, 'erreur', `Abandon du fichier apres ${tentative} tentative(s) : ${fichier.cheminSource}`, fichier.cheminSource)
+      runsRepo.journaliser(run.id, 'erreur', tMain('main.fileAbandoned', { count: tentative, path: fichier.cheminSource }), fichier.cheminSource)
       return 'echoue'
     }
   }
@@ -176,7 +177,7 @@ export async function executerSuppressionsPlanifiees(ctx: ContexteExecution): Pr
     } catch (erreur) {
       const err = erreur as NodeJS.ErrnoException
       if (err.code !== 'ENOENT') {
-        ctx.runsRepo.journaliser(ctx.run.id, 'erreur', `Echec de suppression : ${chemin} (${err.message})`, chemin)
+        ctx.runsRepo.journaliser(ctx.run.id, 'erreur', tMain('main.deleteFailed', { path: chemin, error: err.message }), chemin)
         continue
       }
     }

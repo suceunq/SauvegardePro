@@ -4,6 +4,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import type { ResultatRestauration, RunFile } from '@shared/types'
 import { hacherFichier } from './integrity'
 import { dossierRacinePourSource } from './pathMapping'
+import { tMain } from '../i18n'
 
 function cheminRelatifRestauration(cheminSource: string, sources: string[]): string {
   const source = sources
@@ -11,7 +12,7 @@ function cheminRelatifRestauration(cheminSource: string, sources: string[]): str
     .filter(({ rel }) => rel === '' || (!rel.startsWith('..') && !isAbsolute(rel)))
     .sort((a, b) => b.racine.length - a.racine.length)[0]
 
-  if (!source || !source.rel) throw new Error('impossible de rattacher le fichier a une source du job')
+  if (!source || !source.rel) throw new Error(tMain('main.restoreSourceMismatch'))
   return join(dossierRacinePourSource(source.racine), source.rel)
 }
 
@@ -40,7 +41,7 @@ export async function restaurerFichiers(
       }
       if (fichier.hashSource) {
         const hash = await hacherFichier(cible)
-        if (hash !== fichier.hashSource) throw new Error('verification SHA-256 echouee')
+        if (hash !== fichier.hashSource) throw new Error(tMain('main.restoreHashFailed'))
       }
       resultat.fichiersRestaures++
     } catch (error) {

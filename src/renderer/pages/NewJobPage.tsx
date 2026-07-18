@@ -5,22 +5,24 @@ import ScheduleEditor from '../components/ScheduleEditor'
 import ExclusionEditor from '../components/ExclusionEditor'
 import { PARAMETRES_AVANCES_DEFAUT } from '@shared/types'
 import type { ModeSauvegarde, NouveauJob } from '@shared/types'
+import type { CleTraduction } from '@shared/i18n'
+import { useI18n } from '../i18n'
 
-const MODES: Array<{ valeur: ModeSauvegarde; titre: string; description: string }> = [
+const MODES: Array<{ valeur: ModeSauvegarde; titre: CleTraduction; description: CleTraduction }> = [
   {
     valeur: 'complete',
-    titre: 'Sauvegarde complete',
-    description: 'Copie integrale de toutes les sources a chaque execution, dans une nouvelle version horodatee.'
+    titre: 'mode.complete',
+    description: 'mode.complete.description'
   },
   {
     valeur: 'incrementielle',
-    titre: 'Sauvegarde incrementielle',
-    description: 'Seuls les fichiers nouveaux ou modifies sont copies ; les fichiers inchanges sont lies (aucun espace disque supplementaire).'
+    titre: 'mode.incremental',
+    description: 'mode.incremental.description'
   },
   {
     valeur: 'miroir',
-    titre: 'Synchronisation miroir',
-    description: 'La destination reflete exactement la source : ajouts et modifications copies, fichiers supprimes de la source retires de la destination.'
+    titre: 'mode.mirror',
+    description: 'mode.mirror.description'
   }
 ]
 
@@ -38,6 +40,7 @@ function jobParDefaut(): NouveauJob {
 }
 
 export default function NewJobPage() {
+  const { t } = useI18n()
   const jobEnEdition = useAppStore((e) => e.jobEnEdition)
   const lecteurs = useAppStore((e) => e.lecteurs)
   const appareilsReseau = useAppStore((e) => e.appareilsReseau)
@@ -83,16 +86,16 @@ export default function NewJobPage() {
   }
 
   const ajouterEtUtiliserEmplacement = async (): Promise<void> => {
-    const chemin = prompt('Chemin reseau (ex: \\\\NAS\\Partage)')
+    const chemin = prompt(t('job.networkPathPrompt'))
     if (!chemin) return
-    const nom = prompt('Nom pour cet emplacement', chemin) ?? chemin
+    const nom = prompt(t('job.networkNamePrompt'), chemin) ?? chemin
     await ajouterEmplacement(nom, chemin)
     setJob({ ...job, destination: chemin })
   }
 
   const enregistrer = async (): Promise<void> => {
     if (!job.nom.trim() || job.sources.length === 0 || !job.destination.trim()) {
-      alert('Veuillez renseigner un nom, au moins une source et une destination.')
+      alert(t('job.missingFields'))
       return
     }
     setEnregistrement(true)
@@ -108,21 +111,21 @@ export default function NewJobPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 p-8">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-100">{jobEnEdition ? 'Modifier la sauvegarde' : 'Nouvelle sauvegarde'}</h1>
-        <p className="text-sm text-slate-400">Configurez les sources, la destination et le comportement de la sauvegarde.</p>
+        <h1 className="text-2xl font-semibold text-slate-100">{jobEnEdition ? t('job.editTitle') : t('job.newTitle')}</h1>
+        <p className="text-sm text-slate-400">{t('job.subtitle')}</p>
       </div>
 
-      <Section titre="Nom">
+      <Section titre={t('job.name')}>
         <input
           type="text"
           value={job.nom}
           onChange={(e) => setJob({ ...job, nom: e.target.value })}
-          placeholder="Ex : Documents personnels"
+          placeholder={t('job.namePlaceholder')}
           className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600"
         />
       </Section>
 
-      <Section titre="Sources">
+      <Section titre={t('job.sources')}>
         <div className="flex flex-wrap gap-2">
           {job.sources.map((source) => (
             <span key={source} className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200">
@@ -138,7 +141,7 @@ export default function NewJobPage() {
             onClick={() => void ajouterSourceDossier()}
             className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
           >
-            <FolderPlus size={14} /> Ajouter un dossier
+            <FolderPlus size={14} /> {t('job.addFolder')}
           </button>
           {lecteurs.map((l) => (
             <button
@@ -152,20 +155,20 @@ export default function NewJobPage() {
         </div>
       </Section>
 
-      <Section titre="Destination">
+      <Section titre={t('job.destination')}>
         <div className="flex gap-2">
           <input
             type="text"
             value={job.destination}
             onChange={(e) => setJob({ ...job, destination: e.target.value })}
-            placeholder="Ex : D:\Sauvegardes ou \\NAS\Partage"
+            placeholder={t('job.destinationPlaceholder')}
             className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600"
           />
           <button
             onClick={() => void choisirDestinationDossier()}
             className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800"
           >
-            <FolderPlus size={14} /> Parcourir
+            <FolderPlus size={14} /> {t('common.browse')}
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -199,12 +202,12 @@ export default function NewJobPage() {
             </button>
           ))}
           <button onClick={() => void ajouterEtUtiliserEmplacement()} className="text-xs text-blue-400 hover:underline">
-            + Ajouter un emplacement reseau
+            + {t('job.addNetwork')}
           </button>
         </div>
       </Section>
 
-      <Section titre="Mode de sauvegarde">
+      <Section titre={t('job.mode')}>
         <div className="flex flex-col gap-2">
           {MODES.map((m) => (
             <label
@@ -215,48 +218,48 @@ export default function NewJobPage() {
             >
               <div className="flex items-center gap-2">
                 <input type="radio" checked={job.mode === m.valeur} onChange={() => setJob({ ...job, mode: m.valeur })} />
-                <span className="font-medium text-slate-100">{m.titre}</span>
+                <span className="font-medium text-slate-100">{t(m.titre)}</span>
               </div>
-              <span className="pl-6 text-xs text-slate-400">{m.description}</span>
+              <span className="pl-6 text-xs text-slate-400">{t(m.description)}</span>
             </label>
           ))}
         </div>
       </Section>
 
-      <Section titre="Planification">
+      <Section titre={t('job.schedule')}>
         <ScheduleEditor valeur={job.planification} onChange={(planification) => setJob({ ...job, planification })} />
       </Section>
 
-      <Section titre="Filtres d'exclusion">
+      <Section titre={t('job.exclusions')}>
         <ExclusionEditor valeur={job.exclusions} onChange={(exclusions) => setJob({ ...job, exclusions })} />
       </Section>
 
-      <Section titre="Parametres avances">
+      <Section titre={t('job.advanced')}>
         <div className="grid grid-cols-2 gap-4">
           <ChampNombre
-            libelle="Limite de debit (Ko/s, 0 = illimite)"
+            libelle={t('job.bandwidth')}
             valeur={job.parametres.limiteDebitKoS ?? 0}
             onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, limiteDebitKoS: v > 0 ? v : null } })}
           />
           <ChampNombre
-            libelle="Nombre de versions a conserver"
+            libelle={t('job.versions')}
             valeur={job.parametres.nombreVersionsAConserver}
             onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, nombreVersionsAConserver: Math.max(1, v) } })}
           />
           <ChampNombre
-            libelle="Nombre de tentatives en cas d'erreur"
+            libelle={t('job.retries')}
             valeur={job.parametres.nombreTentatives}
             onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, nombreTentatives: Math.max(0, v) } })}
           />
           {job.mode === 'miroir' && (
             <>
               <ChampNombre
-                libelle="Seuil de securite miroir (%)"
+                libelle={t('job.mirrorPercent')}
                 valeur={job.parametres.seuilSuppressionPourcent}
                 onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, seuilSuppressionPourcent: v } })}
               />
               <ChampNombre
-                libelle="Seuil de securite miroir (nombre de fichiers)"
+                libelle={t('job.mirrorFiles')}
                 valeur={job.parametres.seuilSuppressionAbsolu}
                 onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, seuilSuppressionAbsolu: v } })}
               />
@@ -269,24 +272,24 @@ export default function NewJobPage() {
             checked={job.parametres.verifierIntegrite}
             onChange={(e) => setJob({ ...job, parametres: { ...job.parametres, verifierIntegrite: e.target.checked } })}
           />
-          Verifier l'integrite des fichiers apres copie
+          {t('job.verifyIntegrity')}
         </label>
         <label className="flex items-center gap-2 text-sm text-slate-300">
           <input type="checkbox" checked={job.actif} onChange={(e) => setJob({ ...job, actif: e.target.checked })} />
-          Sauvegarde active
+          {t('job.active')}
         </label>
       </Section>
 
       <div className="flex justify-end gap-3 pb-8">
         <button onClick={() => allerA('sauvegardes')} className="rounded-lg px-4 py-2 text-sm text-slate-400 hover:bg-slate-800">
-          Annuler
+          {t('common.cancel')}
         </button>
         <button
           onClick={() => void enregistrer()}
           disabled={enregistrement}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
-          <Save size={16} /> Enregistrer
+          <Save size={16} /> {t('common.save')}
         </button>
       </div>
     </div>

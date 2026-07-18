@@ -8,6 +8,7 @@ import { executerSauvegardeComplete } from '../backup/modes/complete'
 import { executerSauvegardeIncrementielle } from '../backup/modes/incremental'
 import { executerSynchronisationMiroir, confirmerSuppressionsMiroir } from '../backup/modes/mirror'
 import { notifierSucces, notifierEchec, notifierAvertissement } from '../notifications'
+import { tMain } from '../i18n'
 
 export class BackupService {
   private readonly enCours = new Map<number, AbortController>()
@@ -122,14 +123,14 @@ export class BackupService {
   }
 
   async confirmerMiroir(jobId: number, runId: number): Promise<void> {
-    if (this.enCours.has(jobId)) throw new Error('Cette sauvegarde est deja en cours')
+    if (this.enCours.has(jobId)) throw new Error(tMain('main.alreadyRunning'))
     const job = this.jobsRepo.obtenir(jobId)
-    if (!job) throw new Error('Job introuvable')
-    if (job.mode !== 'miroir') throw new Error('Ce job n\'est pas une synchronisation miroir')
+    if (!job) throw new Error(tMain('main.jobNotFound'))
+    if (job.mode !== 'miroir') throw new Error(tMain('main.notMirror'))
 
     const run = this.runsRepo.obtenirRun(runId)
-    if (!run || run.jobId !== jobId) throw new Error('Le run ne correspond pas a ce job')
-    if (run.statut !== 'confirmation_requise') throw new Error('Ce run ne necessite plus de confirmation')
+    if (!run || run.jobId !== jobId) throw new Error(tMain('main.runMismatch'))
+    if (run.statut !== 'confirmation_requise') throw new Error(tMain('main.noConfirmation'))
 
     const controller = new AbortController()
     this.enCours.set(jobId, controller)
@@ -152,7 +153,7 @@ export class BackupService {
       if (run.message) notifierAvertissement(parametres, job.nom, run.message)
       else notifierSucces(parametres, job.nom)
     } else if (run.statut === 'echec' || run.statut === 'interrompu') {
-      notifierEchec(parametres, job.nom, run.message ?? 'Voir le journal pour plus de details')
+      notifierEchec(parametres, job.nom, run.message ?? tMain('main.seeLog'))
     }
   }
 }

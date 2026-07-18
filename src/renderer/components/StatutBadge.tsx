@@ -1,4 +1,6 @@
 import type { StatutRun } from '@shared/types'
+import { useI18n } from '../i18n'
+import type { CleTraduction } from '@shared/i18n'
 
 const STYLES: Record<StatutRun, string> = {
   planification: 'bg-slate-700 text-slate-200',
@@ -10,20 +12,21 @@ const STYLES: Record<StatutRun, string> = {
   annule: 'bg-slate-700 text-slate-300'
 }
 
-const LIBELLES: Record<StatutRun, string> = {
-  planification: 'Planifie',
-  en_cours: 'En cours',
-  interrompu: 'Interrompu',
-  confirmation_requise: 'Confirmation requise',
-  termine: 'Termine',
-  echec: 'Echec',
-  annule: 'Annule'
+const LIBELLES: Record<StatutRun, CleTraduction> = {
+  planification: 'status.scheduled',
+  en_cours: 'status.running',
+  interrompu: 'status.interrupted',
+  confirmation_requise: 'status.confirmation',
+  termine: 'status.completed',
+  echec: 'status.failed',
+  annule: 'status.cancelled'
 }
 
 export default function StatutBadge({ statut }: { statut: StatutRun }) {
+  const { t } = useI18n()
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[statut]}`}>
-      {LIBELLES[statut]}
+      {t(LIBELLES[statut])}
     </span>
   )
 }

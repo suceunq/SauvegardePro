@@ -1,5 +1,6 @@
 import type { Database } from './database'
 import type { EmplacementReseau } from '@shared/types'
+import { tMain } from '../i18n'
 
 export class NetworkLocationsRepo {
   constructor(private readonly db: Database) {}
@@ -21,7 +22,7 @@ export class NetworkLocationsRepo {
       'SELECT id, nom, chemin, ajoute_le FROM network_locations WHERE chemin = ?',
       [chemin]
     )
-    if (!ligne) throw new Error("Echec de l'ajout de l'emplacement reseau")
+    if (!ligne) throw new Error(tMain('main.addNetworkFailed'))
     return { id: ligne.id, nom: ligne.nom, chemin: ligne.chemin, ajouteLe: ligne.ajoute_le }
   }
 

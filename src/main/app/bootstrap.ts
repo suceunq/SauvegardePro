@@ -14,6 +14,7 @@ import { enregistrerTousLesIpc } from '../ipc'
 import { GestionnaireMiseAJour } from '../updater'
 import { CANAUX_IPC } from '@shared/ipc'
 import type { DemandeConfirmationMiroir, EtatMiseAJour, ProgressionRun } from '@shared/types'
+import { initialiserI18nMain } from '../i18n'
 
 export interface ApplicationDemarree {
   arreter(): Promise<void>
@@ -33,6 +34,7 @@ export async function demarrerApplication(): Promise<ApplicationDemarree> {
   const runsRepo = new RunsRepo(db)
   const manifestRepo = new ManifestRepo(db)
   const settingsRepo = new SettingsRepo(db)
+  initialiserI18nMain(app.getLocale(), () => settingsRepo.obtenir().langue)
   const networkLocationsRepo = new NetworkLocationsRepo(db)
 
   const emettreProgression = (p: ProgressionRun): void => diffuserATouteFenetre(CANAUX_IPC.evenementProgression, p)

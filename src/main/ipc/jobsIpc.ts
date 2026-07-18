@@ -3,6 +3,7 @@ import { CANAUX_IPC } from '@shared/ipc'
 import type { NouveauJob } from '@shared/types'
 import type { DependancesIpc } from './types'
 import { validerId, validerNouveauJob } from './validation'
+import { tMain } from '../i18n'
 
 export function enregistrerJobsIpc(deps: DependancesIpc): void {
   ipcMain.handle(CANAUX_IPC.jobsLister, () => deps.jobsRepo.lister())
@@ -14,7 +15,7 @@ export function enregistrerJobsIpc(deps: DependancesIpc): void {
   ipcMain.handle(CANAUX_IPC.jobsExecuter, async (_e, id: number) => {
     validerId(id)
     const job = deps.jobsRepo.obtenir(id)
-    if (!job) throw new Error('Job introuvable')
+    if (!job) throw new Error(tMain('main.jobNotFound'))
     const runId = await deps.backupService.executerJob(job)
     return { runId }
   })

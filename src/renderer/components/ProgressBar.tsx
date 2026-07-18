@@ -1,13 +1,15 @@
-export function formaterOctets(octets: number): string {
-  if (!Number.isFinite(octets) || octets <= 0) return '0 o'
-  const unites = ['o', 'Ko', 'Mo', 'Go', 'To']
+import { useI18n } from '../i18n'
+
+export function formaterOctets(octets: number, locale = 'fr-FR'): string {
+  if (!Number.isFinite(octets) || octets <= 0) return '0 B'
+  const unites = ['B', 'KiB', 'MiB', 'GiB', 'TiB']
   let valeur = octets
   let unite = 0
   while (valeur >= 1024 && unite < unites.length - 1) {
     valeur /= 1024
     unite++
   }
-  return `${valeur.toFixed(unite === 0 ? 0 : 1)} ${unites[unite]}`
+  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: unite === 0 ? 0 : 1 }).format(valeur)} ${unites[unite]}`
 }
 
 interface ProgressBarProps {
@@ -21,12 +23,13 @@ interface ProgressBarProps {
 }
 
 export default function ProgressBar(props: ProgressBarProps) {
+  const { t, locale } = useI18n()
   const pourcentage = props.fichiersTotal > 0 ? Math.min(100, Math.round((props.fichiersTraites / props.fichiersTotal) * 100)) : 0
 
   return (
     <div className="w-full">
       <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
-        <span className="truncate">{props.fichierCourant ?? libellePhase(props.phase)}</span>
+        <span className="truncate">{props.fichierCourant ?? libellePhase(props.phase, t)}</span>
         <span>{pourcentage}%</span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
@@ -34,28 +37,28 @@ export default function ProgressBar(props: ProgressBarProps) {
       </div>
       <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
         <span>
-          {props.fichiersTraites} / {props.fichiersTotal} fichier(s)
+          {t('progress.files', { done: props.fichiersTraites, total: props.fichiersTotal })}
         </span>
         <span>
-          {formaterOctets(props.octetsTransferes)} · {formaterOctets(props.vitesseOctetsParSeconde)}/s
+          {formaterOctets(props.octetsTransferes, locale)} · {formaterOctets(props.vitesseOctetsParSeconde, locale)}/s
         </span>
       </div>
     </div>
   )
 }
 
-function libellePhase(phase: string): string {
+function libellePhase(phase: string, t: ReturnType<typeof useI18n>['t']): string {
   switch (phase) {
     case 'analyse':
-      return 'Analyse des fichiers...'
+      return t('phase.analysis')
     case 'copie':
-      return 'Copie en cours...'
+      return t('phase.copy')
     case 'verification':
-      return "Verification de l'integrite..."
+      return t('phase.verify')
     case 'suppression':
-      return 'Suppression des fichiers obsoletes...'
+      return t('phase.delete')
     case 'termine':
-      return 'Termine'
+      return t('phase.done')
     default:
       return phase
   }

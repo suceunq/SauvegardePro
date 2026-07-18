@@ -164,6 +164,7 @@ export interface Notifications {
 }
 
 export interface Parametres {
+  langue: PreferenceLangue
   limiteDebitKoS: number | null
   nombreVersionsParDefaut: number
   verifierIntegriteParDefaut: boolean
@@ -175,6 +176,7 @@ export interface Parametres {
 }
 
 export const PARAMETRES_DEFAUT: Parametres = {
+  langue: 'auto',
   limiteDebitKoS: null,
   nombreVersionsParDefaut: 10,
   verifierIntegriteParDefaut: true,
@@ -221,3 +223,4 @@ export interface EtatMiseAJour {
   secondesRestantes?: number | null
   message: string | null
 }
+import type { PreferenceLangue } from './i18n'
