@@ -27,6 +27,8 @@ export interface ParametresAvances {
   seuilSuppressionPourcent: number // disjoncteur miroir, 0-100
   seuilSuppressionAbsolu: number // disjoncteur miroir, nombre de fichiers
   nombreTentatives: number
+  /** Chiffre chaque fichier (AES-256-GCM) avant ecriture sur la destination - protege les donnees si le support de sauvegarde est perdu ou vole. */
+  chiffrementActif: boolean
 }
 
 export const PARAMETRES_AVANCES_DEFAUT: ParametresAvances = {
@@ -35,7 +37,8 @@ export const PARAMETRES_AVANCES_DEFAUT: ParametresAvances = {
   verifierIntegrite: true,
   seuilSuppressionPourcent: 25,
   seuilSuppressionAbsolu: 500,
-  nombreTentatives: 3
+  nombreTentatives: 3,
+  chiffrementActif: false
 }
 
 export interface Job {

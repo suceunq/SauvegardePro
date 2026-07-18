@@ -1,16 +1,21 @@
 import { createHash, type Hash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
+import type { Readable } from 'node:stream'
 import { Transform } from 'node:stream'
+import { creerFluxDechiffrement } from './encryption'
 import { tMain } from '../i18n'
 
-export function hacherFichier(chemin: string): Promise<string> {
+function hacherFlux(flux: Readable): Promise<string> {
   return new Promise((resolve, reject) => {
     const hash = createHash('sha256')
-    const flux = createReadStream(chemin)
     flux.on('data', (chunk) => hash.update(chunk as Buffer))
     flux.on('end', () => resolve(hash.digest('hex')))
     flux.on('error', reject)
   })
+}
+
+export function hacherFichier(chemin: string): Promise<string> {
+  return hacherFlux(createReadStream(chemin))
 }
 
 export interface TransformHachage {
@@ -43,8 +48,17 @@ export function creerTransformHachage(): TransformHachage {
   }
 }
 
-/** Relit le fichier de destination et compare son empreinte a celle attendue (verification post-copie reelle). */
-export async function verifierIntegriteFichier(cheminDestination: string, hashAttendu: string): Promise<boolean> {
-  const hashObtenu = await hacherFichier(cheminDestination)
+/**
+ * Relit le fichier de destination et compare son empreinte a celle attendue (verification post-copie
+ * reelle). `hashAttendu` porte toujours sur le contenu en clair : si le fichier est chiffre, il est
+ * dechiffre a la volee avant hachage plutot que hache tel quel.
+ */
+export async function verifierIntegriteFichier(
+  cheminDestination: string,
+  hashAttendu: string,
+  cleChiffrement: Buffer | null = null
+): Promise<boolean> {
+  const flux = cleChiffrement ? await creerFluxDechiffrement(cheminDestination, cleChiffrement) : createReadStream(cheminDestination)
+  const hashObtenu = await hacherFlux(flux)
   return hashObtenu === hashAttendu
 }

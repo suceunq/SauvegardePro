@@ -1,5 +1,5 @@
 import type { Database } from './database'
-import type { Job, NouveauJob } from '@shared/types'
+import { PARAMETRES_AVANCES_DEFAUT, type Job, type NouveauJob } from '@shared/types'
 import { tMain } from '../i18n'
 
 interface LigneJob {
@@ -26,7 +26,9 @@ function versJob(ligne: LigneJob): Job {
     mode: ligne.mode as Job['mode'],
     planification: JSON.parse(ligne.planification),
     exclusions: JSON.parse(ligne.exclusions),
-    parametres: JSON.parse(ligne.parametres),
+    // Fusionne avec les valeurs par defaut : un job cree avant l'ajout d'un champ (ex. chiffrementActif)
+    // a un JSON stocke incomplet, sinon rejete par la validation au premier enregistrement.
+    parametres: { ...PARAMETRES_AVANCES_DEFAUT, ...JSON.parse(ligne.parametres) },
     actif: ligne.actif === 1,
     creeLe: ligne.cree_le,
     modifieLe: ligne.modifie_le,

@@ -6,6 +6,7 @@ import type { RunsRepo } from '../db/runsRepo'
 import type { LigneManifest } from '../db/manifestRepo'
 import { copierFichierAtomique } from './copyEngine'
 import { verifierIntegriteFichier } from './integrity'
+import { obtenirCleChiffrement } from './encryptionKey'
 import { classifierErreur, decisionPourErreur, attendre, SurveillantDeconnexion } from './errorPolicy'
 import { tMain } from '../i18n'
 
@@ -57,12 +58,15 @@ async function traiterUnFichier(
     try {
       runsRepo.marquerEtatFichier(run.id, fichier.cheminSource, 'copying')
 
+      const cleChiffrement = parametres.chiffrementActif ? await obtenirCleChiffrement() : null
+
       const resultat = await copierFichierAtomique({
         cheminSource: fichier.cheminSource,
         cheminDestinationFinal: fichier.cheminDestination,
         runId: run.id,
         limiteOctetsParSeconde: parametres.limiteDebitKoS ? parametres.limiteDebitKoS * 1024 : null,
         calculerHash: parametres.verifierIntegrite,
+        cleChiffrement,
         surProgression: (octets) => {
           octetsCumules.valeur += octets
         }
@@ -72,7 +76,7 @@ async function traiterUnFichier(
 
       if (parametres.verifierIntegrite && resultat.hash) {
         runsRepo.marquerEtatFichier(run.id, fichier.cheminSource, 'verifying')
-        const integre = await verifierIntegriteFichier(fichier.cheminDestination, resultat.hash)
+        const integre = await verifierIntegriteFichier(fichier.cheminDestination, resultat.hash, cleChiffrement)
         if (!integre) {
           throw Object.assign(new Error(tMain('main.integrityCopyFailed')), { code: 'EINTEGRITY' })
         }

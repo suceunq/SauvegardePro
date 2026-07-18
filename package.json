@@ -1,6 +1,6 @@
 {
   "name": "sauvegardepro",
-  "version": "1.1.13",
+  "version": "1.1.14",
   "description": "Logiciel de sauvegarde et de synchronisation de donnees",
   "main": "./out/main/index.js",
   "author": "SauvegardePro",
@@ -12,7 +12,8 @@
     "build": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && electron-vite build",
     "test:i18n": "tsx scripts/tests/test-i18n.ts",
     "test:backup-safety": "tsx scripts/tests/test-backup-safety.ts",
-    "test": "npm run test:i18n && npm run test:backup-safety",
+    "test:engine": "tsx --tsconfig tsconfig.node.json scripts/tests/test-engine.ts",
+    "test": "npm run test:i18n && npm run test:backup-safety && npm run test:engine",
     "start": "electron-vite preview",
     "dist": "npm run icon && npm run build && electron-builder --win nsis",
     "icon": "node scripts/generate-icon.mjs"

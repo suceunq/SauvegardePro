@@ -4,6 +4,7 @@ import { dirname } from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { Transform } from 'node:stream'
 import { creerTransformHachage } from './integrity'
+import { creerTransformChiffrement } from './encryption'
 import { LimiteurDebit } from './throttle'
 
 export interface OptionsCopie {
@@ -13,6 +14,8 @@ export interface OptionsCopie {
   runId: number
   limiteOctetsParSeconde: number | null
   calculerHash: boolean
+  /** Cle AES-256 pour chiffrer le fichier en transit (calculee sur la source en clair, voir creerTransformChiffrement) ; null = pas de chiffrement. */
+  cleChiffrement: Buffer | null
   surProgression?: (octetsEcrits: number) => void
 }
 
@@ -31,7 +34,7 @@ export function cheminTemporaire(cheminDestinationFinal: string, runId: number):
  * Aucune ecriture directe sur le nom final : en cas d'echec/interruption, seul le .part-<runId> est corrompu.
  */
 export async function copierFichierAtomique(options: OptionsCopie): Promise<ResultatCopie> {
-  const { cheminSource, cheminDestinationFinal, runId, limiteOctetsParSeconde, calculerHash } = options
+  const { cheminSource, cheminDestinationFinal, runId, limiteOctetsParSeconde, calculerHash, cleChiffrement } = options
   await mkdir(dirname(cheminDestinationFinal), { recursive: true })
 
   const cheminTemp = cheminTemporaire(cheminDestinationFinal, runId)
@@ -39,6 +42,9 @@ export async function copierFichierAtomique(options: OptionsCopie): Promise<Resu
 
   let octets = 0
   const transformHachage = calculerHash ? creerTransformHachage() : null
+  // Le hachage porte toujours sur le contenu source en clair (place avant le chiffrement dans le
+  // pipeline) : c'est ce hash qui sert de reference pour la verification d'integrite et la restauration.
+  const chiffrement = cleChiffrement ? creerTransformChiffrement(cleChiffrement) : null
 
   try {
     const lectureSource = createReadStream(cheminSource)
@@ -58,6 +64,7 @@ export async function copierFichierAtomique(options: OptionsCopie): Promise<Resu
     const etapes: Array<NodeJS.ReadableStream | NodeJS.WritableStream> = [lectureSource, compteur]
     if (transformHachage) etapes.push(transformHachage.flux)
     if (limiteOctetsParSeconde) etapes.push(new LimiteurDebit(limiteOctetsParSeconde))
+    if (chiffrement) etapes.push(chiffrement.flux)
     etapes.push(ecritureTemp)
 
     await pipeline(etapes as unknown as [NodeJS.ReadableStream, NodeJS.WritableStream])

@@ -6,6 +6,8 @@ import assert from 'node:assert/strict'
 import { mkdir, writeFile, readFile, rm, stat, appendFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { tmpdir } from 'node:os'
+import { randomBytes } from 'node:crypto'
 
 import { Database } from '../../src/main/db/database'
 import { JobsRepo } from '../../src/main/db/jobsRepo'
@@ -18,11 +20,12 @@ import { preparerReprise } from '../../src/main/backup/resumeManager'
 import { copierFichierAtomique, cheminTemporaire } from '../../src/main/backup/copyEngine'
 import { verifierIntegriteFichier } from '../../src/main/backup/integrity'
 import { restaurerFichiers } from '../../src/main/backup/restoreService'
+import { creerFluxDechiffrement } from '../../src/main/backup/encryption'
 import { validerNouveauJob } from '../../src/main/ipc/validation'
 import { PARAMETRES_AVANCES_DEFAUT } from '../../src/shared/types'
 import type { NouveauJob, ProgressionRun } from '../../src/shared/types'
 
-const RACINE = 'C:/Users/calib/AppData/Local/Temp/claude/E--developpement/1ec482b5-af66-4a87-9482-49b801674d07/scratchpad/sauvegardepro-test'
+const RACINE = join(tmpdir(), 'sauvegardepro-test-engine')
 
 let reussites = 0
 let echecs = 0
@@ -271,7 +274,8 @@ async function main(): Promise<void> {
       cheminDestinationFinal: destinationFinale,
       runId: 999,
       limiteOctetsParSeconde: null,
-      calculerHash: true
+      calculerHash: true,
+      cleChiffrement: null
     })
     assert.ok(resultat.hash)
 
@@ -281,6 +285,64 @@ async function main(): Promise<void> {
     await appendFile(destinationFinale, 'corruption')
     const intactApres = await verifierIntegriteFichier(destinationFinale, resultat.hash!)
     assert.equal(intactApres, false, 'la corruption doit etre detectee')
+  })
+
+  // --- Scenario chiffrement : copie chiffree, verification, dechiffrement, restauration ---
+  // Cle generee directement (pas via obtenirCleChiffrement, qui depend de safeStorage d'Electron
+  // et n'est disponible que dans le processus principal reel, pas dans ce script tsx autonome) :
+  // ce scenario couvre le moteur de chiffrement lui-meme, pas le stockage de la cle par l'OS.
+  await scenario('Le chiffrement protege le contenu sur disque et se dechiffre correctement', async () => {
+    const source = join(RACINE, 'source-chiffre')
+    const dest = join(RACINE, 'dest-chiffre')
+    const restauration = join(RACINE, 'restauration-chiffre')
+    await mkdir(source, { recursive: true })
+    await mkdir(dest, { recursive: true })
+    const contenu = 'donnee sensible '.repeat(1000)
+    await writeFile(join(source, 'secret.bin'), contenu)
+
+    const cle = randomBytes(32)
+    const destinationFinale = join(dest, 'secret.bin')
+    const resultat = await copierFichierAtomique({
+      cheminSource: join(source, 'secret.bin'),
+      cheminDestinationFinal: destinationFinale,
+      runId: 997,
+      limiteOctetsParSeconde: null,
+      calculerHash: true,
+      cleChiffrement: cle
+    })
+    assert.ok(resultat.hash)
+
+    const octetsSurDisque = await readFile(destinationFinale)
+    assert.ok(!octetsSurDisque.toString('latin1').includes('donnee sensible'), 'le contenu sur disque ne doit jamais apparaitre en clair')
+
+    const integre = await verifierIntegriteFichier(destinationFinale, resultat.hash!, cle)
+    assert.equal(integre, true, 'la verification doit dechiffrer avant de comparer le hash')
+
+    // Une mauvaise cle fait echouer la verification d'authentification GCM (le flux de dechiffrement
+    // rejette) plutot que de renvoyer silencieusement un contenu incorrect.
+    const mauvaiseCle = randomBytes(32)
+    await assert.rejects(() => verifierIntegriteFichier(destinationFinale, resultat.hash!, mauvaiseCle))
+
+    const fluxClair = await creerFluxDechiffrement(destinationFinale, cle)
+    const morceaux: Buffer[] = []
+    for await (const chunk of fluxClair) morceaux.push(chunk as Buffer)
+    assert.equal(Buffer.concat(morceaux).toString('utf8'), contenu)
+
+    const runFile = {
+      runId: 997,
+      cheminSource: join(source, 'secret.bin'),
+      cheminDestination: destinationFinale,
+      etat: 'done' as const,
+      tailleSource: contenu.length,
+      mtimeSource: Date.now(),
+      hashSource: resultat.hash,
+      cheminTemp: null,
+      nombreTentatives: 0,
+      derniereErreur: null
+    }
+    const resultatRestauration = await restaurerFichiers([runFile], restauration, [source], cle)
+    assert.equal(resultatRestauration.fichiersRestaures, 1)
+    assert.equal(await readFile(join(restauration, 'source-chiffre', 'secret.bin'), 'utf8'), contenu)
   })
 
   // --- Scenario 6 : limiteur de debit ---
@@ -299,7 +361,8 @@ async function main(): Promise<void> {
       cheminDestinationFinal: join(dest, 'z.bin'),
       runId: 998,
       limiteOctetsParSeconde,
-      calculerHash: false
+      calculerHash: false,
+      cleChiffrement: null
     })
     const dureeMs = Date.now() - debut
     assert.ok(dureeMs >= 1500, `la copie limitee a ${limiteOctetsParSeconde} o/s aurait du prendre du temps (mesure: ${dureeMs}ms)`)

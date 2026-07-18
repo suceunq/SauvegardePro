@@ -3,6 +3,7 @@ import { constants } from 'node:fs'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import type { ResultatRestauration, RunFile } from '@shared/types'
 import { hacherFichier } from './integrity'
+import { dechiffrerVersFichier } from './encryption'
 import { dossierRacinePourSource } from './pathMapping'
 import { tMain } from '../i18n'
 
@@ -19,7 +20,8 @@ export function cheminRelatifRestauration(cheminSource: string, sources: string[
 export async function restaurerFichiers(
   fichiers: RunFile[],
   destination: string,
-  sources: string[]
+  sources: string[],
+  cleChiffrement: Buffer | null = null
 ): Promise<ResultatRestauration> {
   const resultat: ResultatRestauration = { fichiersRestaures: 0, fichiersIgnores: 0, erreurs: [] }
   const valides = fichiers.filter((f) => f.etat === 'done' || f.etat === 'copied')
@@ -31,7 +33,11 @@ export async function restaurerFichiers(
       const cible = join(destination, rel)
       await mkdir(dirname(cible), { recursive: true })
       try {
-        await copyFile(fichier.cheminDestination, cible, constants.COPYFILE_EXCL)
+        if (cleChiffrement) {
+          await dechiffrerVersFichier(fichier.cheminDestination, cible, cleChiffrement)
+        } else {
+          await copyFile(fichier.cheminDestination, cible, constants.COPYFILE_EXCL)
+        }
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
           resultat.fichiersIgnores++

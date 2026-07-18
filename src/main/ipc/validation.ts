@@ -58,6 +58,7 @@ export function validerNouveauJob(job: unknown): asserts job is NouveauJob {
   exiger(Number.isFinite(a.seuilSuppressionPourcent) && a.seuilSuppressionPourcent >= 0 && a.seuilSuppressionPourcent <= 100, 'seuil miroir en pourcentage incorrect')
   exiger(Number.isInteger(a.seuilSuppressionAbsolu) && a.seuilSuppressionAbsolu >= 0, 'seuil miroir absolu incorrect')
   exiger(Number.isInteger(a.nombreTentatives) && a.nombreTentatives >= 0 && a.nombreTentatives <= 100, 'nombre de tentatives incorrect')
+  exiger(typeof a.chiffrementActif === 'boolean', 'option de chiffrement incorrecte')
   exiger(typeof j.actif === 'boolean', 'etat actif incorrect')
 }
 

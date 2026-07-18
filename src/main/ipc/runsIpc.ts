@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import { CANAUX_IPC } from '@shared/ipc'
 import type { DependancesIpc } from './types'
 import { restaurerFichiers } from '../backup/restoreService'
+import { obtenirCleChiffrement } from '../backup/encryptionKey'
 import { validerChemin, validerId } from './validation'
 import { tMain } from '../i18n'
 
@@ -19,7 +20,8 @@ export function enregistrerRunsIpc(deps: DependancesIpc): void {
     if (!job) throw new Error(tMain('main.jobNotFound'))
     const tous = deps.runsRepo.fichiersDuRun(runId)
     const selection = cheminsSource?.length ? tous.filter((f) => cheminsSource.includes(f.cheminSource)) : tous
-    const resultat = await restaurerFichiers(selection, destination, job.sources)
+    const cleChiffrement = job.parametres.chiffrementActif ? await obtenirCleChiffrement() : null
+    const resultat = await restaurerFichiers(selection, destination, job.sources, cleChiffrement)
     deps.runsRepo.journaliser(runId, resultat.erreurs.length ? 'avertissement' : 'info', tMain('main.restoreSummary', { restored: resultat.fichiersRestaures, errors: resultat.erreurs.length }))
     return resultat
   })
