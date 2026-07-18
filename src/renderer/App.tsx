@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DownloadCloud, RotateCw } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import ConfirmationMiroirModal from './components/ConfirmationMiroirModal'
@@ -30,6 +30,8 @@ export default function App() {
   const parametres = useAppStore((e) => e.parametres)
   const miseAJour = useAppStore((e) => e.miseAJour)
   const notesRedemarrage = useAppStore((e) => e.notesRedemarrage)
+  const [toastMiseAJourVisible, setToastMiseAJourVisible] = useState(false)
+  const toastMiseAJourAffiche = useRef(false)
 
   useEffect(() => {
     initialiserEcouteurs()
@@ -37,6 +39,16 @@ export default function App() {
     void chargerNotesRedemarrage()
     void chargerParametres()
   }, [])
+
+  // Bref rappel auto-disparaissant au debut du telechargement en arriere-plan - l'installation
+  // elle-meme reste entierement silencieuse, ceci indique juste qu'une activite est en cours.
+  useEffect(() => {
+    if (miseAJour?.phase !== 'telechargement' || toastMiseAJourAffiche.current) return
+    toastMiseAJourAffiche.current = true
+    setToastMiseAJourVisible(true)
+    const minuteur = setTimeout(() => setToastMiseAJourVisible(false), 3000)
+    return () => clearTimeout(minuteur)
+  }, [miseAJour?.phase])
 
   useEffect(() => {
     document.documentElement.dataset.theme = themeSombre ? 'dark' : 'light'
@@ -53,11 +65,19 @@ export default function App() {
     setBienvenueEvaluee(true)
   }, [parametres, bienvenueEvaluee])
 
-  const banniereVisible =
-    page !== 'parametres' && (miseAJour?.phase === 'telechargement' || miseAJour?.phase === 'pret')
+  const banniereVisible = page !== 'parametres' && miseAJour?.phase === 'pret'
 
   return (
     <div className="sauvegarde-shell flex h-screen w-screen bg-slate-950 text-slate-100">
+      {toastMiseAJourVisible && (
+        <div
+          role="status"
+          className="fixed left-1/2 top-5 z-[70] flex -translate-x-1/2 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-100 shadow-2xl shadow-black/40"
+        >
+          <DownloadCloud size={16} />
+          {t('app.updateDownloading', { version: miseAJour?.versionDisponible ?? '' })}
+        </div>
+      )}
       <Sidebar
         ouvrirAPropos={() => setAProposOuvert(true)}
         ouvrirSuggestion={() => setSuggestionOuverte(true)}
@@ -66,10 +86,8 @@ export default function App() {
       <div className="sauvegarde-content flex flex-1 flex-col overflow-hidden">
         {banniereVisible && (
           <div className="flex items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white">
-            {miseAJour?.phase === 'pret' ? <RotateCw size={16} /> : <DownloadCloud size={16} />}
-            {miseAJour?.phase === 'pret'
-              ? t('app.updateInstalling', { version: miseAJour.versionDisponible ?? '' })
-              : t('app.updateDownloading', { version: miseAJour?.versionDisponible ?? '' })}
+            <RotateCw size={16} />
+            {t('app.updateInstalling', { version: miseAJour?.versionDisponible ?? '' })}
           </div>
         )}
         <main className="sauvegarde-main flex-1 overflow-y-auto">
