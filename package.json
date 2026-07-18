@@ -11,6 +11,8 @@
     "dev": "electron-vite dev",
     "build": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && electron-vite build",
     "test:i18n": "tsx scripts/tests/test-i18n.ts",
+    "test:backup-safety": "tsx scripts/tests/test-backup-safety.ts",
+    "test": "npm run test:i18n && npm run test:backup-safety",
     "start": "electron-vite preview",
     "dist": "npm run icon && npm run build && electron-builder --win nsis",
     "icon": "node scripts/generate-icon.mjs"

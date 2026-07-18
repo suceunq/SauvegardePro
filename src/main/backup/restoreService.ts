@@ -6,7 +6,7 @@ import { hacherFichier } from './integrity'
 import { dossierRacinePourSource } from './pathMapping'
 import { tMain } from '../i18n'
 
-function cheminRelatifRestauration(cheminSource: string, sources: string[]): string {
+export function cheminRelatifRestauration(cheminSource: string, sources: string[]): string {
   const source = sources
     .map((racine) => ({ racine: resolve(racine), rel: relative(resolve(racine), resolve(cheminSource)) }))
     .filter(({ rel }) => rel === '' || (!rel.startsWith('..') && !isAbsolute(rel)))
