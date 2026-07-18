@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FolderPlus, X, Save, HardDrive, Wifi, Server } from 'lucide-react'
+import { FolderPlus, X, Save, HardDrive, Wifi, Server, TriangleAlert } from 'lucide-react'
 import { useAppStore } from '../state/store'
 import ScheduleEditor from '../components/ScheduleEditor'
 import ExclusionEditor from '../components/ExclusionEditor'
@@ -224,6 +224,15 @@ export default function NewJobPage() {
             </label>
           ))}
         </div>
+        {job.mode === 'miroir' && (
+          <div className="flex gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-amber-100">
+            <TriangleAlert size={20} className="mt-0.5 shrink-0 text-amber-400" />
+            <div className="flex flex-col gap-1">
+              <strong className="text-sm">{t('job.mirrorWarningTitle')}</strong>
+              <span className="text-xs leading-5 text-amber-100/80">{t('job.mirrorWarningBody')}</span>
+            </div>
+          </div>
+        )}
       </Section>
 
       <Section titre={t('job.schedule')}>
@@ -241,11 +250,13 @@ export default function NewJobPage() {
             valeur={job.parametres.limiteDebitKoS ?? 0}
             onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, limiteDebitKoS: v > 0 ? v : null } })}
           />
-          <ChampNombre
-            libelle={t('job.versions')}
-            valeur={job.parametres.nombreVersionsAConserver}
-            onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, nombreVersionsAConserver: Math.max(1, v) } })}
-          />
+          {job.mode !== 'miroir' && (
+            <ChampNombre
+              libelle={t('job.versions')}
+              valeur={job.parametres.nombreVersionsAConserver}
+              onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, nombreVersionsAConserver: Math.max(1, v) } })}
+            />
+          )}
           <ChampNombre
             libelle={t('job.retries')}
             valeur={job.parametres.nombreTentatives}
@@ -263,6 +274,7 @@ export default function NewJobPage() {
                 valeur={job.parametres.seuilSuppressionAbsolu}
                 onChange={(v) => setJob({ ...job, parametres: { ...job.parametres, seuilSuppressionAbsolu: v } })}
               />
+              <p className="col-span-2 text-xs leading-5 text-slate-500">{t('job.mirrorThresholdHelp')}</p>
             </>
           )}
         </div>
