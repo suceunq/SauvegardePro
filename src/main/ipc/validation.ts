@@ -1,7 +1,6 @@
 import { isAbsolute, relative, resolve } from 'node:path'
 import type { NouveauJob, Parametres } from '@shared/types'
 import { LANGUES } from '../../shared/i18n'
-import { estUrlPaypalValide } from '../../shared/donation'
 import { tMain } from '../i18n'
 
 function exiger(condition: unknown, _message: string): asserts condition {
@@ -74,12 +73,6 @@ export function validerParametres(parametres: unknown): asserts parametres is Pa
       typeof p.afficherBienvenueAuDemarrage === 'boolean' &&
       typeof p.themeSombre === 'boolean',
     'option booleenne incorrecte'
-  )
-  exiger(
-    typeof p.urlDonPaypal === 'string' &&
-      p.urlDonPaypal.length <= 2_048 &&
-      (p.urlDonPaypal.trim() === '' || estUrlPaypalValide(p.urlDonPaypal)),
-    'adresse PayPal incorrecte'
   )
   exiger(Number.isInteger(p.conserverJournauxJours) && p.conserverJournauxJours >= 1 && p.conserverJournauxJours <= 36_500, 'retention des journaux incorrecte')
   exiger(p.algorithmeHash === 'sha256', 'algorithme de hash incorrect')

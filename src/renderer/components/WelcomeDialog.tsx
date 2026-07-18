@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { ExternalLink, HeartHandshake, ShieldCheck, X } from 'lucide-react'
-import { estUrlPaypalValide } from '@shared/donation'
+import { estUrlPaypalValide, URL_DON_PAYPAL_DEFAUT } from '@shared/donation'
 import { useAppStore } from '../state/store'
 import { useI18n } from '../i18n'
 
@@ -8,7 +8,7 @@ export default function WelcomeDialog({ ouvert, fermer }: { ouvert: boolean; fer
   const { t } = useI18n()
   const parametres = useAppStore((etat) => etat.parametres)
   const enregistrerParametres = useAppStore((etat) => etat.enregistrerParametres)
-  const urlPaypal = parametres?.urlDonPaypal.trim() ?? ''
+  const urlPaypal = URL_DON_PAYPAL_DEFAUT
   const donDisponible = estUrlPaypalValide(urlPaypal)
 
   useEffect(() => {

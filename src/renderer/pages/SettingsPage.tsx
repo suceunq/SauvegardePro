@@ -5,7 +5,6 @@ import { formaterNotesVersion } from '../lib/releaseNotes'
 import type { Parametres } from '@shared/types'
 import { PARAMETRES_DEFAUT } from '@shared/types'
 import { useI18n } from '../i18n'
-import { estUrlPaypalValide } from '@shared/donation'
 
 export default function SettingsPage() {
   const { t } = useI18n()
@@ -15,7 +14,6 @@ export default function SettingsPage() {
 
   const [local, setLocal] = useState<Parametres>(parametres ?? PARAMETRES_DEFAUT)
   const [enregistre, setEnregistre] = useState(false)
-  const urlDonValide = local.urlDonPaypal.trim() === '' || estUrlPaypalValide(local.urlDonPaypal)
 
   useEffect(() => {
     void chargerParametres()
@@ -125,19 +123,7 @@ export default function SettingsPage() {
       </Section>
 
       <Section titre={t('settings.supportProject')}>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm text-slate-300">{t('settings.donationUrl')}</span>
-          <input
-            type="url"
-            value={local.urlDonPaypal}
-            onChange={(e) => setLocal({ ...local, urlDonPaypal: e.target.value })}
-            placeholder={t('settings.donationUrlPlaceholder')}
-            spellCheck={false}
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600"
-          />
-        </label>
-        <p className="text-xs leading-5 text-slate-500">{t('settings.donationUrlHelp')}</p>
-        {!urlDonValide && <p className="text-xs text-red-400">{t('settings.donationUrlInvalid')}</p>}
+        <p className="text-xs leading-5 text-slate-500">{t('settings.supportHelp')}</p>
         <label className="flex items-center gap-2 text-sm text-slate-300">
           <input
             type="checkbox"
@@ -153,8 +139,7 @@ export default function SettingsPage() {
       <div className="flex items-center gap-3">
         <button
           onClick={() => void enregistrer()}
-          disabled={!urlDonValide}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
         >
           <Save size={16} /> {t('common.save')}
         </button>
