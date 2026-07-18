@@ -17,6 +17,7 @@ import {
   gererErreurRun,
   type ContexteExecution
 } from '../runOrchestrator'
+import { tMain } from '../../i18n'
 
 export interface ResultatMiroir {
   runId: number
@@ -43,14 +44,14 @@ export async function executerSynchronisationMiroir(
   }
 
   const run = runsRepo.creerRun(job.id, null)
-  runsRepo.journaliser(run.id, 'info', 'Synchronisation miroir demarree')
+  runsRepo.journaliser(run.id, 'info', tMain('main.mirrorStarted'))
 
   try {
     const volumesEnregistres = jobsRepo.obtenirVolumesEnregistres(job.id)
     const accessible = (await sourcesAccessibles(job.sources)) && (await volumesInchanges(job.sources, volumesEnregistres))
 
     if (!accessible) {
-      const message = 'Source injoignable ou volume different de celui enregistre : execution annulee par securite'
+      const message = tMain('main.mirrorUnsafeSource')
       runsRepo.changerStatut(run.id, 'echec', message)
       runsRepo.journaliser(run.id, 'erreur', message)
       return { runId: run.id, demandeConfirmation: null }
@@ -64,7 +65,7 @@ export async function executerSynchronisationMiroir(
     ])
 
     for (const erreur of [...scanSource.erreurs, ...scanDest.erreurs]) {
-      runsRepo.journaliser(run.id, 'avertissement', `Impossible de lire ${erreur.chemin} (${erreur.code})`, erreur.chemin)
+      runsRepo.journaliser(run.id, 'avertissement', tMain('main.scanReadError', { path: erreur.chemin, code: erreur.code }), erreur.chemin)
     }
 
     const destInfoParChemin = new Map(scanDest.fichiers.map((f) => [f.cheminRelatif, f]))
@@ -105,11 +106,11 @@ export async function executerSynchronisationMiroir(
     }
 
     if (!gardeFou.autorise && gardeFou.demandeConfirmation) {
-      runsRepo.changerStatut(run.id, 'confirmation_requise', 'En attente de confirmation avant suppression')
+      runsRepo.changerStatut(run.id, 'confirmation_requise', tMain('main.mirrorAwaiting'))
       runsRepo.journaliser(
         run.id,
         'avertissement',
-        `${gardeFou.demandeConfirmation.suppressionsPrevues} suppression(s) depassent le seuil de securite : confirmation requise`
+        tMain('main.mirrorThreshold', { count: gardeFou.demandeConfirmation.suppressionsPrevues })
       )
       return { runId: run.id, demandeConfirmation: gardeFou.demandeConfirmation }
     }
@@ -120,8 +121,8 @@ export async function executerSynchronisationMiroir(
     await nettoyerDossiersVides(job.destination)
 
     const echecs = runsRepo.fichiersParEtat(run.id, 'failed').length
-    runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? `${echecs} fichier(s) en erreur` : null)
-    runsRepo.journaliser(run.id, 'info', 'Synchronisation miroir terminee')
+    runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? tMain('main.filesInError', { count: echecs }) : null)
+    runsRepo.journaliser(run.id, 'info', tMain('main.mirrorFinished'))
 
     return { runId: run.id, demandeConfirmation: null }
   } catch (erreur) {
@@ -141,9 +142,9 @@ async function reprendreMiroir(
   signal: AbortSignal
 ): Promise<ResultatMiroir> {
   const run = runsRepo.obtenirRun(runId)
-  if (!run) throw new Error('Run a reprendre introuvable')
+  if (!run) throw new Error(tMain('main.runResumeNotFound'))
 
-  runsRepo.journaliser(run.id, 'info', 'Reprise de la synchronisation miroir apres interruption')
+  runsRepo.journaliser(run.id, 'info', tMain('main.mirrorResume'))
   const ctx: ContexteExecution = { db, runsRepo, job, run, emettre, signal }
 
   try {
@@ -152,8 +153,8 @@ async function reprendreMiroir(
     await nettoyerDossiersVides(job.destination)
 
     const echecs = runsRepo.fichiersParEtat(run.id, 'failed').length
-    runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? `${echecs} fichier(s) en erreur` : null)
-    runsRepo.journaliser(run.id, 'info', 'Synchronisation miroir terminee (apres reprise)')
+    runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? tMain('main.filesInError', { count: echecs }) : null)
+    runsRepo.journaliser(run.id, 'info', tMain('main.mirrorFinishedResume'))
     return { runId: run.id, demandeConfirmation: null }
   } catch (erreur) {
     await gererErreurRun(runsRepo, run.id, erreur)
@@ -188,9 +189,9 @@ export async function confirmerSuppressionsMiroir(
 ): Promise<void> {
   const run = runsRepo.obtenirRun(runId)
   if (!run || run.statut !== 'confirmation_requise') {
-    throw new Error('Ce run ne necessite plus de confirmation')
+    throw new Error(tMain('main.noConfirmation'))
   }
-  if (run.jobId !== job.id) throw new Error('Le run ne correspond pas a ce job')
+  if (run.jobId !== job.id) throw new Error(tMain('main.runMismatch'))
 
   runsRepo.changerStatut(run.id, 'en_cours')
   const ctx: ContexteExecution = { db, runsRepo, job, run, emettre, signal }
@@ -200,8 +201,8 @@ export async function confirmerSuppressionsMiroir(
     await executerSuppressionsPlanifiees(ctx)
     await nettoyerDossiersVides(job.destination)
     const echecs = runsRepo.fichiersParEtat(run.id, 'failed').length
-    runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? `${echecs} fichier(s) en erreur` : null)
-    runsRepo.journaliser(run.id, 'info', 'Suppressions confirmees et appliquees')
+    runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? tMain('main.filesInError', { count: echecs }) : null)
+    runsRepo.journaliser(run.id, 'info', tMain('main.mirrorConfirmed'))
   } catch (erreur) {
     await gererErreurRun(runsRepo, run.id, erreur)
   } finally {

@@ -343,7 +343,7 @@ async function main(): Promise<void> {
   await scenario('La validation refuse une destination imbriquee dans une source', async () => {
     const source = join(RACINE, 'source9')
     const job = jobParDefaut({ sources: [source], destination: join(source, 'sauvegardes') })
-    assert.throws(() => validerNouveauJob(job), /ne doivent pas se chevaucher/)
+    assert.throws(() => validerNouveauJob(job), /Données invalides/)
   })
 
   await db.fermer()

@@ -2,14 +2,10 @@ import { useEffect } from 'react'
 import { Play, Square, HardDrive, Wifi, FolderSync } from 'lucide-react'
 import { useAppStore } from '../state/store'
 import ProgressBar from '../components/ProgressBar'
-
-const LIBELLE_MODE: Record<string, string> = {
-  complete: 'Complete',
-  incrementielle: 'Incrementielle',
-  miroir: 'Miroir'
-}
+import { useI18n } from '../i18n'
 
 export default function Dashboard() {
+  const { t } = useI18n()
   const jobs = useAppStore((e) => e.jobs)
   const lecteurs = useAppStore((e) => e.lecteurs)
   const appareilsReseau = useAppStore((e) => e.appareilsReseau)
@@ -32,23 +28,23 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-6 p-8">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-100">Tableau de bord</h1>
-        <p className="text-sm text-slate-400">Vue d'ensemble de vos sauvegardes et du stockage detecte.</p>
+        <h1 className="text-2xl font-semibold text-slate-100">{t('nav.dashboard')}</h1>
+        <p className="text-sm text-slate-400">{t('dashboard.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Carte titre="Sauvegardes actives" valeur={String(jobsActifs)} icone={FolderSync} />
-        <Carte titre="Lecteurs detectes" valeur={String(lecteurs.length)} icone={HardDrive} />
-        <Carte titre="Appareils reseau" valeur={String(appareilsReseau.length)} icone={Wifi} />
+        <Carte titre={t('dashboard.activeBackups')} valeur={String(jobsActifs)} icone={FolderSync} />
+        <Carte titre={t('dashboard.detectedDrives')} valeur={String(lecteurs.length)} icone={HardDrive} />
+        <Carte titre={t('dashboard.networkDevices')} valeur={String(appareilsReseau.length)} icone={Wifi} />
       </div>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Sauvegardes</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('nav.backups')}</h2>
         {jobs.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-800 p-8 text-center text-sm text-slate-500">
-            Aucune sauvegarde configuree.{' '}
+            {t('dashboard.noBackups')}{' '}
             <button onClick={() => editerJob(null)} className="text-blue-400 hover:underline">
-              Creer la premiere sauvegarde
+              {t('dashboard.createFirst')}
             </button>
           </div>
         ) : (
@@ -62,7 +58,7 @@ export default function Dashboard() {
                     <div>
                       <div className="font-medium text-slate-100">{job.nom}</div>
                       <div className="text-xs text-slate-500">
-                        {LIBELLE_MODE[job.mode]} · {job.sources.length} source(s) → {job.destination}
+                        {t(job.mode === 'complete' ? 'mode.complete.short' : job.mode === 'incrementielle' ? 'mode.incremental.short' : 'mode.mirror.short')} · {t('common.sources', { count: job.sources.length })} → {job.destination}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -71,14 +67,14 @@ export default function Dashboard() {
                           onClick={() => void annulerJob(job.id)}
                           className="flex items-center gap-1.5 rounded-lg bg-red-600/20 px-3 py-1.5 text-sm font-medium text-red-300 hover:bg-red-600/30"
                         >
-                          <Square size={14} /> Annuler
+                          <Square size={14} /> {t('common.cancel')}
                         </button>
                       ) : (
                         <button
                           onClick={() => void executerJob(job.id)}
                           className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500"
                         >
-                          <Play size={14} /> Sauvegarder
+                          <Play size={14} /> {t('common.backup')}
                         </button>
                       )}
                     </div>
@@ -97,21 +93,21 @@ export default function Dashboard() {
 
       <section className="grid grid-cols-2 gap-6">
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Lecteurs detectes</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('dashboard.detectedDrives')}</h2>
           <div className="flex flex-col gap-2">
             {lecteurs.map((l) => (
               <div key={l.identifiant} className="flex items-center justify-between rounded-lg border border-slate-800 px-3 py-2 text-sm">
                 <span className="text-slate-200">
                   {l.identifiant} {l.nom}
                 </span>
-                <span className="text-xs text-slate-500">{l.type}</span>
+                <span className="text-xs text-slate-500">{t(l.type === 'interne' ? 'drive.internal' : l.type === 'amovible' ? 'drive.removable' : l.type === 'reseau' ? 'drive.network' : l.type === 'cdrom' ? 'drive.cdrom' : 'drive.unknown')}</span>
               </div>
             ))}
-            {lecteurs.length === 0 && <div className="text-sm text-slate-600">Aucun lecteur detecte.</div>}
+            {lecteurs.length === 0 && <div className="text-sm text-slate-600">{t('dashboard.noDrives')}</div>}
           </div>
         </div>
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Appareils reseau</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('dashboard.networkDevices')}</h2>
           <div className="flex flex-col gap-2">
             {appareilsReseau.map((a) => (
               <div key={a.adresseIp} className="flex items-center justify-between rounded-lg border border-slate-800 px-3 py-2 text-sm">
@@ -119,7 +115,7 @@ export default function Dashboard() {
                 <span className="text-xs text-slate-500">{a.adresseIp}</span>
               </div>
             ))}
-            {appareilsReseau.length === 0 && <div className="text-sm text-slate-600">Aucun appareil detecte pour le moment.</div>}
+            {appareilsReseau.length === 0 && <div className="text-sm text-slate-600">{t('dashboard.noNetwork')}</div>}
           </div>
         </div>
       </section>

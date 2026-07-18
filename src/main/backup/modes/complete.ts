@@ -6,6 +6,7 @@ import type { ManifestRepo } from '../../db/manifestRepo'
 import { scannerSources } from '../fileScanner'
 import { cheminNouvelleVersion, horodatageVersion, purgerAnciennesVersions } from '../versionManager'
 import { executerCopies, gererErreurRun, construireEntreesManifeste, type ContexteExecution } from '../runOrchestrator'
+import { tMain } from '../../i18n'
 
 export async function executerSauvegardeComplete(
   db: Database,
@@ -22,10 +23,10 @@ export async function executerSauvegardeComplete(
   if (runIdExistant) {
     const existant = runsRepo.obtenirRun(runIdExistant)
     const horodatage = runsRepo.versionDossierRun(runIdExistant)
-    if (!existant || !horodatage) throw new Error('Run a reprendre introuvable')
+    if (!existant || !horodatage) throw new Error(tMain('main.runResumeNotFound'))
     run = existant
     dossierVersion = cheminNouvelleVersion(job.destination, horodatage)
-    runsRepo.journaliser(run.id, 'info', 'Reprise de la sauvegarde complete apres interruption')
+    runsRepo.journaliser(run.id, 'info', tMain('main.completeResume'))
   } else {
     // Le run.id (auto-incremente, garanti unique) est ajoute au nom de version : deux runs demarres
     // dans la meme seconde (voire la meme milliseconde) ne peuvent jamais partager le meme dossier.
@@ -33,7 +34,7 @@ export async function executerSauvegardeComplete(
     const horodatage = `${horodatageVersion()}-r${run.id}`
     runsRepo.definirVersionDossier(run.id, horodatage)
     dossierVersion = cheminNouvelleVersion(job.destination, horodatage)
-    runsRepo.journaliser(run.id, 'info', `Sauvegarde complete demarree (version ${horodatage})`)
+    runsRepo.journaliser(run.id, 'info', tMain('main.completeStarted', { version: horodatage }))
 
     emettre({
       runId: run.id,
@@ -49,7 +50,7 @@ export async function executerSauvegardeComplete(
 
     const resultatScan = await scannerSources(job.sources, job.exclusions)
     for (const erreur of resultatScan.erreurs) {
-      runsRepo.journaliser(run.id, 'avertissement', `Impossible de lire ${erreur.chemin} (${erreur.code})`, erreur.chemin)
+      runsRepo.journaliser(run.id, 'avertissement', tMain('main.scanReadError', { path: erreur.chemin, code: erreur.code }), erreur.chemin)
     }
 
     runsRepo.planifierFichiers(
@@ -69,13 +70,13 @@ export async function executerSauvegardeComplete(
 
     const echecs = runsRepo.fichiersParEtat(run.id, 'failed').length
     if (runsRepo.scanIncomplet(run.id)) {
-      const message = 'Sauvegarde incomplete : au moins un fichier ou dossier source n\'a pas pu etre lu. Les anciennes versions sont conservees.'
+      const message = tMain('main.scanIncomplete')
       runsRepo.changerStatut(run.id, 'echec', message)
       runsRepo.journaliser(run.id, 'erreur', message)
     } else {
       manifestRepo.enregistrer(job.id, run.id, construireEntreesManifeste(runsRepo.fichiersDuRun(run.id), dossierVersion))
-      runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? `${echecs} fichier(s) en erreur` : null)
-      runsRepo.journaliser(run.id, 'info', 'Sauvegarde complete terminee')
+      runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? tMain('main.filesInError', { count: echecs }) : null)
+      runsRepo.journaliser(run.id, 'info', tMain('main.completeFinished'))
       await purgerAnciennesVersions(job.id, job.destination, runsRepo, job.parametres.nombreVersionsAConserver)
     }
   } catch (erreur) {

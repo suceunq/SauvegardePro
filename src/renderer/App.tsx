@@ -11,8 +11,10 @@ import NewJobPage from './pages/NewJobPage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
 import { useAppStore } from './state/store'
+import { useI18n } from './i18n'
 
 export default function App() {
+  const { t, langue } = useI18n()
   const [miseAJourOuverte, setMiseAJourOuverte] = useState(false)
   const [aProposOuvert, setAProposOuvert] = useState(false)
   const [suggestionOuverte, setSuggestionOuverte] = useState(false)
@@ -34,6 +36,11 @@ export default function App() {
   }, [themeSombre])
 
   useEffect(() => {
+    document.documentElement.lang = langue
+    document.title = 'SauvegardePro'
+  }, [langue])
+
+  useEffect(() => {
     if (miseAJour?.phase === 'disponible') setMiseAJourOuverte(true)
   }, [miseAJour?.phase, miseAJour?.versionDisponible])
 
@@ -51,9 +58,9 @@ export default function App() {
           >
             <DownloadCloud size={16} />
             {miseAJour?.phase === 'pret'
-              ? `Mise a jour ${miseAJour.versionDisponible} prete a installer`
-              : `Mise a jour ${miseAJour?.versionDisponible} disponible`}
-            <span className="underline">Voir dans Parametres</span>
+              ? t('app.updateReady', { version: miseAJour.versionDisponible ?? '' })
+              : t('app.updateAvailable', { version: miseAJour?.versionDisponible ?? '' })}
+            <span className="underline">{t('app.viewSettings')}</span>
           </button>
         )}
         <main className="sauvegarde-main flex-1 overflow-y-auto">

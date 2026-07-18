@@ -12,6 +12,7 @@ import {
   purgerAnciennesVersions
 } from '../versionManager'
 import { executerCopies, gererErreurRun, construireEntreesManifeste, type ContexteExecution } from '../runOrchestrator'
+import { tMain } from '../../i18n'
 
 export async function executerSauvegardeIncrementielle(
   db: Database,
@@ -28,10 +29,10 @@ export async function executerSauvegardeIncrementielle(
   if (runIdExistant) {
     const existant = runsRepo.obtenirRun(runIdExistant)
     const horodatage = runsRepo.versionDossierRun(runIdExistant)
-    if (!existant || !horodatage) throw new Error('Run a reprendre introuvable')
+    if (!existant || !horodatage) throw new Error(tMain('main.runResumeNotFound'))
     run = existant
     dossierVersion = cheminNouvelleVersion(job.destination, horodatage)
-    runsRepo.journaliser(run.id, 'info', 'Reprise de la sauvegarde incrementielle apres interruption')
+    runsRepo.journaliser(run.id, 'info', tMain('main.incrementalResume'))
   } else {
     // Le run.id (auto-incremente, garanti unique) est ajoute au nom de version : deux runs demarres
     // dans la meme seconde (voire la meme milliseconde) ne peuvent jamais partager le meme dossier.
@@ -39,7 +40,7 @@ export async function executerSauvegardeIncrementielle(
     const horodatage = `${horodatageVersion()}-r${run.id}`
     runsRepo.definirVersionDossier(run.id, horodatage)
     dossierVersion = cheminNouvelleVersion(job.destination, horodatage)
-    runsRepo.journaliser(run.id, 'info', `Sauvegarde incrementielle demarree (version ${horodatage})`)
+    runsRepo.journaliser(run.id, 'info', tMain('main.incrementalStarted', { version: horodatage }))
 
     emettre({
       runId: run.id,
@@ -55,7 +56,7 @@ export async function executerSauvegardeIncrementielle(
 
     const resultatScan = await scannerSources(job.sources, job.exclusions)
     for (const erreur of resultatScan.erreurs) {
-      runsRepo.journaliser(run.id, 'avertissement', `Impossible de lire ${erreur.chemin} (${erreur.code})`, erreur.chemin)
+      runsRepo.journaliser(run.id, 'avertissement', tMain('main.scanReadError', { path: erreur.chemin, code: erreur.code }), erreur.chemin)
     }
 
     const runPrecedent = runsRepo.dernierRunTermine(job.id)
@@ -94,7 +95,7 @@ export async function executerSauvegardeIncrementielle(
         runsRepo.journaliser(
           run.id,
           'avertissement',
-          `Liaison impossible pour ${fichier.cheminRelatif} (${err.code ?? err.message}), copie normale a la place`,
+          tMain('main.linkFailed', { path: fichier.cheminRelatif, error: err.code ?? err.message }),
           fichier.cheminSource
         )
       }
@@ -103,7 +104,7 @@ export async function executerSauvegardeIncrementielle(
     runsRepo.journaliser(
       run.id,
       'info',
-      `Analyse terminee : ${hardlinksReussis} fichier(s) inchange(s), ${plan.aCopier.length + (plan.aLier.length - hardlinksReussis)} a copier`
+      tMain('main.analysisFinished', { linked: hardlinksReussis, copy: plan.aCopier.length + (plan.aLier.length - hardlinksReussis) })
     )
   }
 
@@ -113,13 +114,13 @@ export async function executerSauvegardeIncrementielle(
 
     const echecs = runsRepo.fichiersParEtat(run.id, 'failed').length
     if (runsRepo.scanIncomplet(run.id)) {
-      const message = 'Sauvegarde incomplete : au moins un fichier ou dossier source n\'a pas pu etre lu. Les anciennes versions sont conservees.'
+      const message = tMain('main.scanIncomplete')
       runsRepo.changerStatut(run.id, 'echec', message)
       runsRepo.journaliser(run.id, 'erreur', message)
     } else {
       manifestRepo.enregistrer(job.id, run.id, construireEntreesManifeste(runsRepo.fichiersDuRun(run.id), dossierVersion))
-      runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? `${echecs} fichier(s) en erreur` : null)
-      runsRepo.journaliser(run.id, 'info', 'Sauvegarde incrementielle terminee')
+      runsRepo.changerStatut(run.id, 'termine', echecs > 0 ? tMain('main.filesInError', { count: echecs }) : null)
+      runsRepo.journaliser(run.id, 'info', tMain('main.incrementalFinished'))
       await purgerAnciennesVersions(job.id, job.destination, runsRepo, job.parametres.nombreVersionsAConserver)
     }
   } catch (erreur) {

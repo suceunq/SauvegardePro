@@ -1,5 +1,6 @@
 import { Notification } from 'electron'
 import type { Notifications } from '@shared/types'
+import { tMain } from './i18n'
 
 function notifier(titre: string, corps: string): void {
   if (!Notification.isSupported()) return
@@ -8,15 +9,15 @@ function notifier(titre: string, corps: string): void {
 
 export function notifierSucces(parametres: Notifications, nomJob: string): void {
   if (!parametres.surSucces) return
-  notifier('Sauvegarde terminee', `La sauvegarde "${nomJob}" s'est terminee avec succes.`)
+  notifier(tMain('main.notificationSuccessTitle'), tMain('main.notificationSuccessBody', { name: nomJob }))
 }
 
 export function notifierEchec(parametres: Notifications, nomJob: string, message: string): void {
   if (!parametres.surEchec) return
-  notifier('Echec de la sauvegarde', `La sauvegarde "${nomJob}" a echoue : ${message}`)
+  notifier(tMain('main.notificationFailureTitle'), tMain('main.notificationFailureBody', { name: nomJob, message }))
 }
 
 export function notifierAvertissement(parametres: Notifications, nomJob: string, message: string): void {
   if (!parametres.surAvertissement) return
-  notifier('Avertissement', `Sauvegarde "${nomJob}" : ${message}`)
+  notifier(tMain('main.notificationWarningTitle'), tMain('main.notificationWarningBody', { name: nomJob, message }))
 }

@@ -1,6 +1,7 @@
 import { createHash, type Hash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { Transform } from 'node:stream'
+import { tMain } from '../i18n'
 
 export function hacherFichier(chemin: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -36,7 +37,7 @@ export function creerTransformHachage(): TransformHachage {
   return {
     flux,
     obtenirHash: () => {
-      if (!termine) throw new Error('Le hachage n\'est pas encore termine')
+      if (!termine) throw new Error(tMain('main.hashPending'))
       return hash.digest('hex')
     }
   }

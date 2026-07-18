@@ -2,6 +2,7 @@ import { app } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import type { UpdateInfo } from 'builder-util-runtime'
 import type { EtatMiseAJour } from '@shared/types'
+import { tMain } from './i18n'
 
 function extraireNotes(info: UpdateInfo): string | null {
   if (typeof info.releaseNotes === 'string') return info.releaseNotes
@@ -59,8 +60,8 @@ export class GestionnaireMiseAJour {
     autoUpdater.on('update-downloaded', () => {
       this.definirEtat({ phase: 'pret', progressionPourcent: 100 })
     })
-    autoUpdater.on('error', (erreur) => {
-      this.definirEtat({ phase: 'erreur', message: erreur instanceof Error ? erreur.message : String(erreur) })
+    autoUpdater.on('error', () => {
+      this.definirEtat({ phase: 'erreur', message: tMain('main.updateError') })
     })
   }
 
@@ -75,13 +76,13 @@ export class GestionnaireMiseAJour {
 
   async verifier(): Promise<EtatMiseAJour> {
     if (!app.isPackaged) {
-      this.definirEtat({ phase: 'indisponible_dev', message: "Verification indisponible en mode developpement" })
+      this.definirEtat({ phase: 'indisponible_dev', message: tMain('main.updateDev') })
       return this.etatCourant()
     }
     try {
       await autoUpdater.checkForUpdates()
-    } catch (erreur) {
-      this.definirEtat({ phase: 'erreur', message: erreur instanceof Error ? erreur.message : String(erreur) })
+    } catch {
+      this.definirEtat({ phase: 'erreur', message: tMain('main.updateError') })
     }
     return this.etatCourant()
   }
@@ -90,8 +91,8 @@ export class GestionnaireMiseAJour {
     if (!app.isPackaged || this.etat.phase !== 'disponible') return
     try {
       await autoUpdater.downloadUpdate()
-    } catch (erreur) {
-      this.definirEtat({ phase: 'erreur', message: erreur instanceof Error ? erreur.message : String(erreur) })
+    } catch {
+      this.definirEtat({ phase: 'erreur', message: tMain('main.updateError') })
     }
   }
 

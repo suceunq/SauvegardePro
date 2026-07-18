@@ -1,4 +1,5 @@
 import type { FiltreExclusion } from '@shared/types'
+import { useI18n } from '../i18n'
 
 interface Props {
   valeur: FiltreExclusion
@@ -38,22 +39,23 @@ function ChampListe({
 }
 
 export default function ExclusionEditor({ valeur, onChange }: Props) {
+  const { t } = useI18n()
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       <ChampListe
-        libelle="Extensions a exclure"
+        libelle={t('exclusion.extensions')}
         placeholder=".tmp, .log, .bak"
         valeurs={valeur.extensions}
         onChange={(extensions) => onChange({ ...valeur, extensions })}
       />
       <ChampListe
-        libelle="Dossiers a exclure"
+        libelle={t('exclusion.folders')}
         placeholder="node_modules, $RECYCLE.BIN"
         valeurs={valeur.dossiers}
         onChange={(dossiers) => onChange({ ...valeur, dossiers })}
       />
       <ChampListe
-        libelle="Fichiers a exclure"
+        libelle={t('exclusion.files')}
         placeholder="desktop.ini, Thumbs.db"
         valeurs={valeur.fichiers}
         onChange={(fichiers) => onChange({ ...valeur, fichiers })}

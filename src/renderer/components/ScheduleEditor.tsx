@@ -1,12 +1,9 @@
 import type { FrequencePlanification, Planification, TypeDeclenchement } from '@shared/types'
+import { useI18n } from '../i18n'
+import type { CleTraduction } from '@shared/i18n'
 
-const JOURS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
-
-const LIBELLE_TYPE: Record<TypeDeclenchement, string> = {
-  manuel: 'Manuelle',
-  planifie: 'Planifiee',
-  demarrage: "Au demarrage"
-}
+const JOURS: CleTraduction[] = ['day.sun', 'day.mon', 'day.tue', 'day.wed', 'day.thu', 'day.fri', 'day.sat']
+const LIBELLE_TYPE: Record<TypeDeclenchement, CleTraduction> = { manuel: 'schedule.manual', planifie: 'schedule.scheduled', demarrage: 'schedule.startup' }
 
 interface Props {
   valeur: Planification
@@ -14,6 +11,7 @@ interface Props {
 }
 
 export default function ScheduleEditor({ valeur, onChange }: Props) {
+  const { t } = useI18n()
   const toggleJour = (jour: number): void => {
     const jours = new Set(valeur.joursSemaine ?? [1])
     if (jours.has(jour)) jours.delete(jour)
@@ -33,7 +31,7 @@ export default function ScheduleEditor({ valeur, onChange }: Props) {
               valeur.type === type ? 'bg-blue-600 text-white' : 'border border-slate-700 text-slate-300 hover:bg-slate-800'
             }`}
           >
-            {LIBELLE_TYPE[type]}
+            {t(LIBELLE_TYPE[type])}
           </button>
         ))}
       </div>
@@ -45,14 +43,14 @@ export default function ScheduleEditor({ valeur, onChange }: Props) {
             onChange={(e) => onChange({ ...valeur, frequence: e.target.value as FrequencePlanification })}
             className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
           >
-            <option value="quotidienne">Quotidienne</option>
-            <option value="hebdomadaire">Hebdomadaire</option>
-            <option value="intervalle">Par intervalle</option>
+            <option value="quotidienne">{t('schedule.daily')}</option>
+            <option value="hebdomadaire">{t('schedule.weekly')}</option>
+            <option value="intervalle">{t('schedule.interval')}</option>
           </select>
 
           {(valeur.frequence ?? 'quotidienne') !== 'intervalle' && (
             <label className="flex items-center gap-2 text-sm text-slate-300">
-              Heure
+              {t('schedule.time')}
               <input
                 type="time"
                 value={valeur.heure ?? '02:00'}
@@ -75,7 +73,7 @@ export default function ScheduleEditor({ valeur, onChange }: Props) {
                       : 'border border-slate-700 text-slate-400 hover:bg-slate-800'
                   }`}
                 >
-                  {nom}
+                  {t(nom)}
                 </button>
               ))}
             </div>
@@ -83,7 +81,7 @@ export default function ScheduleEditor({ valeur, onChange }: Props) {
 
           {valeur.frequence === 'intervalle' && (
             <label className="flex items-center gap-2 text-sm text-slate-300">
-              Toutes les
+              {t('schedule.every')}
               <input
                 type="number"
                 min={5}
@@ -91,7 +89,7 @@ export default function ScheduleEditor({ valeur, onChange }: Props) {
                 onChange={(e) => onChange({ ...valeur, intervalleMinutes: Number(e.target.value) })}
                 className="w-24 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200"
               />
-              minutes
+              {t('common.minutes')}
             </label>
           )}
         </div>

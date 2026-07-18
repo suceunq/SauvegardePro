@@ -1,15 +1,18 @@
 import { LayoutDashboard, ListChecks, PlusCircle, History, Settings, Info, Mail } from 'lucide-react'
 import { useAppStore, type Page } from '../state/store'
+import { useI18n } from '../i18n'
+import type { CleTraduction } from '@shared/i18n'
 
-const ELEMENTS: Array<{ page: Page; libelle: string; icone: typeof LayoutDashboard }> = [
-  { page: 'tableau', libelle: 'Tableau de bord', icone: LayoutDashboard },
-  { page: 'sauvegardes', libelle: 'Sauvegardes', icone: ListChecks },
-  { page: 'nouvelle', libelle: 'Nouvelle sauvegarde', icone: PlusCircle },
-  { page: 'historique', libelle: 'Historique', icone: History },
-  { page: 'parametres', libelle: 'Parametres', icone: Settings }
+const ELEMENTS: Array<{ page: Page; libelle: CleTraduction; icone: typeof LayoutDashboard }> = [
+  { page: 'tableau', libelle: 'nav.dashboard', icone: LayoutDashboard },
+  { page: 'sauvegardes', libelle: 'nav.backups', icone: ListChecks },
+  { page: 'nouvelle', libelle: 'nav.newBackup', icone: PlusCircle },
+  { page: 'historique', libelle: 'nav.history', icone: History },
+  { page: 'parametres', libelle: 'nav.settings', icone: Settings }
 ]
 
 export default function Sidebar({ ouvrirAPropos, ouvrirSuggestion }: { ouvrirAPropos: () => void; ouvrirSuggestion: () => void }) {
+  const { t } = useI18n()
   const page = useAppStore((e) => e.page)
   const allerA = useAppStore((e) => e.allerA)
   const editerJob = useAppStore((e) => e.editerJob)
@@ -18,7 +21,7 @@ export default function Sidebar({ ouvrirAPropos, ouvrirSuggestion }: { ouvrirAPr
     <aside className="metal-sidebar flex w-64 shrink-0 flex-col border-r border-slate-800 bg-slate-950 text-slate-200">
       <div className="flex items-center gap-2 px-5 py-5">
         <div className="metal-logo flex h-10 w-10 items-center justify-center rounded-xl"><span>SP</span></div>
-        <div><span className="block text-lg font-semibold tracking-tight">SauvegardePro</span><span className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Data protection</span></div>
+        <div><span className="block text-lg font-semibold tracking-tight">SauvegardePro</span><span className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{t('app.tagline')}</span></div>
       </div>
       <nav className="flex flex-col gap-1 px-3">
         {ELEMENTS.map(({ page: cible, libelle, icone: Icone }) => (
@@ -30,11 +33,11 @@ export default function Sidebar({ ouvrirAPropos, ouvrirSuggestion }: { ouvrirAPr
             }`}
           >
             <Icone size={18} />
-            {libelle}
+            {t(libelle)}
           </button>
         ))}
       </nav>
-      <div className="mt-auto grid gap-1 px-3 py-4"><button onClick={ouvrirSuggestion} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-blue-300 hover:bg-blue-950"><Mail size={18} />Suggestion / Correction</button><button onClick={ouvrirAPropos} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-900 hover:text-slate-100"><Info size={18} />À propos</button></div>
+      <div className="mt-auto grid gap-1 px-3 py-4"><button onClick={ouvrirSuggestion} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-blue-300 hover:bg-blue-950"><Mail size={18} />{t('nav.feedback')}</button><button onClick={ouvrirAPropos} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-900 hover:text-slate-100"><Info size={18} />{t('nav.about')}</button></div>
     </aside>
   )
 }

@@ -1,5 +1,6 @@
 import type { Database } from './database'
 import type { Job, NouveauJob } from '@shared/types'
+import { tMain } from '../i18n'
 
 interface LigneJob {
   id: number
@@ -92,7 +93,7 @@ export class JobsRepo {
     )
     const id = this.db.dernierIdInsere()
     const cree = this.obtenir(id)
-    if (!cree) throw new Error("Echec de la creation du job")
+    if (!cree) throw new Error(tMain('main.createJobFailed'))
     return cree
   }
 
@@ -114,7 +115,7 @@ export class JobsRepo {
       ]
     )
     const maj = this.obtenir(id)
-    if (!maj) throw new Error('Job introuvable apres mise a jour')
+    if (!maj) throw new Error(tMain('main.updateJobFailed'))
     return maj
   }
 

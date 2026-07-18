@@ -4,8 +4,10 @@ import { useAppStore } from '../state/store'
 import { formaterNotesVersion } from '../lib/releaseNotes'
 import type { Parametres } from '@shared/types'
 import { PARAMETRES_DEFAUT } from '@shared/types'
+import { useI18n } from '../i18n'
 
 export default function SettingsPage() {
+  const { t } = useI18n()
   const parametres = useAppStore((e) => e.parametres)
   const chargerParametres = useAppStore((e) => e.chargerParametres)
   const enregistrerParametres = useAppStore((e) => e.enregistrerParametres)
@@ -27,21 +29,43 @@ export default function SettingsPage() {
     setTimeout(() => setEnregistre(false), 2000)
   }
 
+  const changerLangue = (langue: Parametres['langue']): void => {
+    const nouveauxParametres = { ...local, langue }
+    setLocal(nouveauxParametres)
+    // Apercu immediat ; le bouton Enregistrer persiste ensuite le choix.
+    useAppStore.setState({ parametres: nouveauxParametres })
+  }
+
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8 p-8">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-100">Parametres</h1>
-        <p className="text-sm text-slate-400">Preferences generales de l'application.</p>
+        <h1 className="text-2xl font-semibold text-slate-100">{t('nav.settings')}</h1>
+        <p className="text-sm text-slate-400">{t('settings.subtitle')}</p>
       </div>
 
-      <Section titre="Performance">
+      <Section titre={t('settings.language')}>
+        <select
+          value={local.langue}
+          onChange={(e) => changerLangue(e.target.value as Parametres['langue'])}
+          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+        >
+          <option value="auto">{t('settings.languageAuto')}</option>
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="de">Deutsch</option>
+        </select>
+        <p className="text-xs text-slate-500">{t('settings.languageHelp')}</p>
+      </Section>
+
+      <Section titre={t('settings.performance')}>
         <ChampNombre
-          libelle="Limite de debit par defaut (Ko/s, 0 = illimite)"
+          libelle={t('settings.defaultBandwidth')}
           valeur={local.limiteDebitKoS ?? 0}
           onChange={(v) => setLocal({ ...local, limiteDebitKoS: v > 0 ? v : null })}
         />
         <ChampNombre
-          libelle="Nombre de versions a conserver par defaut"
+          libelle={t('settings.defaultVersions')}
           valeur={local.nombreVersionsParDefaut}
           onChange={(v) => setLocal({ ...local, nombreVersionsParDefaut: Math.max(1, v) })}
         />
@@ -51,18 +75,18 @@ export default function SettingsPage() {
             checked={local.verifierIntegriteParDefaut}
             onChange={(e) => setLocal({ ...local, verifierIntegriteParDefaut: e.target.checked })}
           />
-          Verifier l'integrite des fichiers par defaut
+          {t('settings.defaultIntegrity')}
         </label>
       </Section>
 
-      <Section titre="Notifications">
+      <Section titre={t('settings.notifications')}>
         <label className="flex items-center gap-2 text-sm text-slate-300">
           <input
             type="checkbox"
             checked={local.notifications.surSucces}
             onChange={(e) => setLocal({ ...local, notifications: { ...local.notifications, surSucces: e.target.checked } })}
           />
-          Notifier en cas de succes
+          {t('settings.notifySuccess')}
         </label>
         <label className="flex items-center gap-2 text-sm text-slate-300">
           <input
@@ -70,7 +94,7 @@ export default function SettingsPage() {
             checked={local.notifications.surEchec}
             onChange={(e) => setLocal({ ...local, notifications: { ...local.notifications, surEchec: e.target.checked } })}
           />
-          Notifier en cas d'echec
+          {t('settings.notifyFailure')}
         </label>
         <label className="flex items-center gap-2 text-sm text-slate-300">
           <input
@@ -78,21 +102,21 @@ export default function SettingsPage() {
             checked={local.notifications.surAvertissement}
             onChange={(e) => setLocal({ ...local, notifications: { ...local.notifications, surAvertissement: e.target.checked } })}
           />
-          Notifier en cas d'avertissement
+          {t('settings.notifyWarning')}
         </label>
       </Section>
 
-      <Section titre="Application">
+      <Section titre={t('settings.application')}>
         <label className="flex items-center gap-2 text-sm text-slate-300">
           <input
             type="checkbox"
             checked={local.demarrerAvecWindows}
             onChange={(e) => setLocal({ ...local, demarrerAvecWindows: e.target.checked })}
           />
-          Demarrer SauvegardePro avec Windows
+          {t('settings.startWindows')}
         </label>
         <ChampNombre
-          libelle="Conserver le journal pendant (jours)"
+          libelle={t('settings.keepLogs')}
           valeur={local.conserverJournauxJours}
           onChange={(v) => setLocal({ ...local, conserverJournauxJours: Math.max(1, v) })}
         />
@@ -105,15 +129,16 @@ export default function SettingsPage() {
           onClick={() => void enregistrer()}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
         >
-          <Save size={16} /> Enregistrer
+          <Save size={16} /> {t('common.save')}
         </button>
-        {enregistre && <span className="text-sm text-emerald-400">Parametres enregistres.</span>}
+        {enregistre && <span className="text-sm text-emerald-400">{t('settings.saved')}</span>}
       </div>
     </div>
   )
 }
 
 function SectionMiseAJour() {
+  const { t } = useI18n()
   const miseAJour = useAppStore((e) => e.miseAJour)
   const chargerEtatMiseAJour = useAppStore((e) => e.chargerEtatMiseAJour)
   const verifierMiseAJour = useAppStore((e) => e.verifierMiseAJour)
@@ -127,44 +152,43 @@ function SectionMiseAJour() {
   const phase = miseAJour?.phase ?? 'inactif'
 
   return (
-    <Section titre="Mises a jour">
+    <Section titre={t('settings.updates')}>
       <div className="flex items-center justify-between">
         <span className="text-sm text-slate-300">
-          Version installee : <span className="font-mono text-slate-100">{miseAJour?.versionActuelle ?? '...'}</span>
+          {t('settings.installedVersion', { version: miseAJour?.versionActuelle ?? '…' })}
         </span>
         {(phase === 'inactif' || phase === 'a_jour' || phase === 'erreur') && (
           <button
             onClick={() => void verifierMiseAJour()}
             className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
           >
-            <RefreshCw size={15} /> Rechercher une mise a jour
+            <RefreshCw size={15} /> {t('settings.checkUpdate')}
           </button>
         )}
       </div>
 
       {phase === 'indisponible_dev' && (
         <p className="text-sm text-slate-500">
-          Recherche de mise a jour indisponible en mode developpement (necessite une version installee via
-          l'installateur).
+          {t('settings.updateDev')}
         </p>
       )}
 
       {phase === 'verification' && (
         <p className="flex items-center gap-2 text-sm text-slate-400">
-          <Loader2 size={15} className="animate-spin" /> Recherche en cours...
+          <Loader2 size={15} className="animate-spin" /> {t('settings.checking')}
         </p>
       )}
 
       {phase === 'a_jour' && (
         <p className="flex items-center gap-2 text-sm text-emerald-400">
-          <CheckCircle2 size={15} /> SauvegardePro est a jour.
+          <CheckCircle2 size={15} /> {t('settings.upToDate')}
         </p>
       )}
 
       {phase === 'disponible' && (
         <div className="flex flex-col gap-2 rounded-lg border border-blue-800 bg-blue-950/40 p-3">
           <p className="text-sm text-blue-200">
-            Version {miseAJour?.versionDisponible} disponible sur GitHub.
+            {t('settings.available', { version: miseAJour?.versionDisponible ?? '' })}
           </p>
           {miseAJour?.notesVersion && (
             <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap text-xs text-slate-400">
@@ -175,14 +199,14 @@ function SectionMiseAJour() {
             onClick={() => void telechargerMiseAJour()}
             className="flex w-fit items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500"
           >
-            <DownloadCloud size={15} /> Telecharger la mise a jour
+            <DownloadCloud size={15} /> {t('settings.downloadUpdate')}
           </button>
         </div>
       )}
 
       {phase === 'telechargement' && (
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-slate-300">Telechargement en cours...</p>
+          <p className="text-sm text-slate-300">{t('settings.downloading')}</p>
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
             <div
               className="h-full bg-blue-600 transition-all"
@@ -196,20 +220,20 @@ function SectionMiseAJour() {
       {phase === 'pret' && (
         <div className="flex items-center justify-between rounded-lg border border-emerald-800 bg-emerald-950/40 p-3">
           <span className="text-sm text-emerald-300">
-            Version {miseAJour?.versionDisponible} prete. Redemarrage necessaire pour l'installer.
+            {t('settings.ready', { version: miseAJour?.versionDisponible ?? '' })}
           </span>
           <button
             onClick={() => void installerMiseAJour()}
             className="flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
           >
-            <RotateCw size={15} /> Installer et redemarrer
+            <RotateCw size={15} /> {t('common.installRestart')}
           </button>
         </div>
       )}
 
       {phase === 'erreur' && (
         <p className="flex items-center gap-2 text-sm text-red-400">
-          <TriangleAlert size={15} /> {miseAJour?.message ?? 'Erreur lors de la verification.'}
+          <TriangleAlert size={15} /> {miseAJour?.message ?? t('settings.updateError')}
         </p>
       )}
     </Section>

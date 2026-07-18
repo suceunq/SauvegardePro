@@ -2,13 +2,14 @@ import { unlink } from 'node:fs/promises'
 import type { Run } from '@shared/types'
 import type { RunsRepo } from '../db/runsRepo'
 import { cheminTemporaire } from './copyEngine'
+import { tMain } from '../i18n'
 
 /** A appeler au demarrage de l'application : tout run reste "en_cours" signale un arret brutal. */
 export function detecterRunsInterrompus(runsRepo: RunsRepo): Run[] {
   const interrompus = runsRepo.runsInterrompus()
   for (const run of interrompus) {
     runsRepo.marquerInterrompu(run.id)
-    runsRepo.journaliser(run.id, 'avertissement', "Le run a ete interrompu par un arret inattendu de l'application")
+    runsRepo.journaliser(run.id, 'avertissement', tMain('main.unexpectedStop'))
   }
   return interrompus
 }
@@ -32,5 +33,5 @@ export async function preparerReprise(runsRepo: RunsRepo, runId: number): Promis
     }
   }
 
-  runsRepo.journaliser(runId, 'info', `Reprise preparee : ${fichiers.length} fichier(s) reexamine(s)`)
+  runsRepo.journaliser(runId, 'info', tMain('main.resumePrepared', { count: fichiers.length }))
 }
