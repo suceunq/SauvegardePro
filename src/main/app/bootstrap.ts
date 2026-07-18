@@ -43,7 +43,7 @@ export async function demarrerApplication(): Promise<ApplicationDemarree> {
   const emettreMiseAJour = (e: EtatMiseAJour): void => diffuserATouteFenetre(CANAUX_IPC.evenementMiseAJour, e)
 
   const backupService = new BackupService(db, jobsRepo, runsRepo, manifestRepo, settingsRepo, emettreProgression, emettreConfirmation)
-  const gestionnaireMiseAJour = new GestionnaireMiseAJour(emettreMiseAJour)
+  const gestionnaireMiseAJour = new GestionnaireMiseAJour(emettreMiseAJour, () => backupService.auMoinsUnJobEnCours())
 
   enregistrerTousLesIpc({
     jobsRepo,
@@ -80,9 +80,6 @@ export async function demarrerApplication(): Promise<ApplicationDemarree> {
     (job) => void backupService.executerJob(job)
   )
   planificateur.demarrer()
-
-  // Verification silencieuse au demarrage : signale une mise a jour disponible sans rien telecharger.
-  void gestionnaireMiseAJour.verifier()
 
   return {
     async arreter(): Promise<void> {

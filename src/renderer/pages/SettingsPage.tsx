@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, DownloadCloud, Loader2, RefreshCw, RotateCw, Save, TriangleAlert } from 'lucide-react'
+import { CheckCircle2, DownloadCloud, Loader2, RefreshCw, Save, TriangleAlert } from 'lucide-react'
 import { useAppStore } from '../state/store'
 import { formaterNotesVersion } from '../lib/releaseNotes'
 import type { Parametres } from '@shared/types'
@@ -154,8 +154,6 @@ function SectionMiseAJour() {
   const miseAJour = useAppStore((e) => e.miseAJour)
   const chargerEtatMiseAJour = useAppStore((e) => e.chargerEtatMiseAJour)
   const verifierMiseAJour = useAppStore((e) => e.verifierMiseAJour)
-  const telechargerMiseAJour = useAppStore((e) => e.telechargerMiseAJour)
-  const installerMiseAJour = useAppStore((e) => e.installerMiseAJour)
 
   useEffect(() => {
     void chargerEtatMiseAJour()
@@ -179,6 +177,8 @@ function SectionMiseAJour() {
         )}
       </div>
 
+      <p className="text-xs leading-5 text-slate-500">{t('settings.autoUpdateInfo')}</p>
+
       {phase === 'indisponible_dev' && (
         <p className="text-sm text-slate-500">
           {t('settings.updateDev')}
@@ -199,20 +199,14 @@ function SectionMiseAJour() {
 
       {phase === 'disponible' && (
         <div className="flex flex-col gap-2 rounded-lg border border-blue-800 bg-blue-950/40 p-3">
-          <p className="text-sm text-blue-200">
-            {t('settings.available', { version: miseAJour?.versionDisponible ?? '' })}
+          <p className="flex items-center gap-2 text-sm text-blue-200">
+            <DownloadCloud size={15} /> {t('settings.available', { version: miseAJour?.versionDisponible ?? '' })}
           </p>
           {miseAJour?.notesVersion && (
             <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap text-xs text-slate-400">
               {formaterNotesVersion(miseAJour.notesVersion)}
             </pre>
           )}
-          <button
-            onClick={() => void telechargerMiseAJour()}
-            className="flex w-fit items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500"
-          >
-            <DownloadCloud size={15} /> {t('settings.downloadUpdate')}
-          </button>
         </div>
       )}
 
@@ -230,17 +224,9 @@ function SectionMiseAJour() {
       )}
 
       {phase === 'pret' && (
-        <div className="flex items-center justify-between rounded-lg border border-emerald-800 bg-emerald-950/40 p-3">
-          <span className="text-sm text-emerald-300">
-            {t('settings.ready', { version: miseAJour?.versionDisponible ?? '' })}
-          </span>
-          <button
-            onClick={() => void installerMiseAJour()}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
-          >
-            <RotateCw size={15} /> {t('common.installRestart')}
-          </button>
-        </div>
+        <p className="text-sm text-emerald-300">
+          {t('settings.ready', { version: miseAJour?.versionDisponible ?? '' })}
+        </p>
       )}
 
       {phase === 'erreur' && (

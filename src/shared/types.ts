@@ -227,3 +227,8 @@ export interface EtatMiseAJour {
   secondesRestantes?: number | null
   message: string | null
 }
+
+export interface NotesRedemarrage {
+  version: string
+  notes: string | null
+}

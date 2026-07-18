@@ -1,7 +1,7 @@
 const DOMAINES_PAYPAL = ['paypal.com', 'paypal.me'] as const
 
 export const URL_DON_PAYPAL_DEFAUT =
-  'https://www.paypal.com/donate/?cmd=_donations&business=X6TNHGN5K7QA&item_name=SauvegardePro&currency_code=EUR'
+  'https://www.paypal.com/donate/?business=X65TNHGN5K7QA&no_recurring=0&item_name=SauvegardePro&currency_code=EUR'
 
 export function estUrlPaypalValide(valeur: string): boolean {
   try {

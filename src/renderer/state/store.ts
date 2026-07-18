@@ -7,6 +7,7 @@ import type {
   EtatMiseAJour,
   Job,
   LecteurDetecte,
+  NotesRedemarrage,
   NouveauJob,
   Parametres,
   ProgressionRun,
@@ -32,6 +33,7 @@ interface EtatApp {
   chargement: boolean
   ecouteursInitialises: boolean
   miseAJour: EtatMiseAJour | null
+  notesRedemarrage: NotesRedemarrage | null
 
   allerA(page: Page): void
   editerJob(job: Job | null): void
@@ -59,8 +61,8 @@ interface EtatApp {
 
   chargerEtatMiseAJour(): Promise<void>
   verifierMiseAJour(): Promise<void>
-  telechargerMiseAJour(): Promise<void>
-  installerMiseAJour(): Promise<void>
+  chargerNotesRedemarrage(): Promise<void>
+  effacerNotesRedemarrage(): void
 
   initialiserEcouteurs(): void
 }
@@ -82,6 +84,7 @@ export const useAppStore = create<EtatApp>((set, get) => ({
   chargement: false,
   ecouteursInitialises: false,
   miseAJour: null,
+  notesRedemarrage: null,
 
   allerA: (page) => set({ page }),
   editerJob: (job) => set({ jobEnEdition: job, page: 'nouvelle' }),
@@ -183,13 +186,12 @@ export const useAppStore = create<EtatApp>((set, get) => ({
     set({ miseAJour })
   },
 
-  telechargerMiseAJour: async () => {
-    await window.sauvegardePro.misesAJour.telecharger()
+  chargerNotesRedemarrage: async () => {
+    const notesRedemarrage = await window.sauvegardePro.misesAJour.notesRedemarrage()
+    set({ notesRedemarrage })
   },
 
-  installerMiseAJour: async () => {
-    await window.sauvegardePro.misesAJour.installer()
-  },
+  effacerNotesRedemarrage: () => set({ notesRedemarrage: null }),
 
   initialiserEcouteurs: () => {
     if (get().ecouteursInitialises) return

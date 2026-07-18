@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
-import { DownloadCloud } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { DownloadCloud, RotateCw } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import ConfirmationMiroirModal from './components/ConfirmationMiroirModal'
-import UpdateDialog from './components/UpdateDialog'
+import UpdateNotesDialog from './components/UpdateNotesDialog'
 import AboutDialog from './components/AboutDialog'
 import FeedbackDialog from './components/FeedbackDialog'
 import WelcomeDialog from './components/WelcomeDialog'
@@ -16,23 +16,25 @@ import { useI18n } from './i18n'
 
 export default function App() {
   const { t, langue } = useI18n()
-  const [miseAJourOuverte, setMiseAJourOuverte] = useState(false)
   const [aProposOuvert, setAProposOuvert] = useState(false)
   const [suggestionOuverte, setSuggestionOuverte] = useState(false)
   const [bienvenueOuverte, setBienvenueOuverte] = useState(false)
   const [bienvenueEvaluee, setBienvenueEvaluee] = useState(false)
-  const miseAJourAutoOuverte = useRef(false)
   const page = useAppStore((e) => e.page)
   const initialiserEcouteurs = useAppStore((e) => e.initialiserEcouteurs)
   const chargerEtatMiseAJour = useAppStore((e) => e.chargerEtatMiseAJour)
+  const chargerNotesRedemarrage = useAppStore((e) => e.chargerNotesRedemarrage)
+  const effacerNotesRedemarrage = useAppStore((e) => e.effacerNotesRedemarrage)
   const chargerParametres = useAppStore((e) => e.chargerParametres)
   const themeSombre = useAppStore((e) => e.parametres?.themeSombre ?? true)
   const parametres = useAppStore((e) => e.parametres)
   const miseAJour = useAppStore((e) => e.miseAJour)
+  const notesRedemarrage = useAppStore((e) => e.notesRedemarrage)
 
   useEffect(() => {
     initialiserEcouteurs()
     void chargerEtatMiseAJour()
+    void chargerNotesRedemarrage()
     void chargerParametres()
   }, [])
 
@@ -51,20 +53,8 @@ export default function App() {
     setBienvenueEvaluee(true)
   }, [parametres, bienvenueEvaluee])
 
-  useEffect(() => {
-    if (
-      bienvenueEvaluee &&
-      !bienvenueOuverte &&
-      miseAJour?.phase === 'disponible' &&
-      !miseAJourAutoOuverte.current
-    ) {
-      miseAJourAutoOuverte.current = true
-      setMiseAJourOuverte(true)
-    }
-  }, [bienvenueEvaluee, bienvenueOuverte, miseAJour?.phase, miseAJour?.versionDisponible])
-
   const banniereVisible =
-    page !== 'parametres' && (miseAJour?.phase === 'disponible' || miseAJour?.phase === 'pret')
+    page !== 'parametres' && (miseAJour?.phase === 'telechargement' || miseAJour?.phase === 'pret')
 
   return (
     <div className="sauvegarde-shell flex h-screen w-screen bg-slate-950 text-slate-100">
@@ -75,16 +65,12 @@ export default function App() {
       />
       <div className="sauvegarde-content flex flex-1 flex-col overflow-hidden">
         {banniereVisible && (
-          <button
-            onClick={() => setMiseAJourOuverte(true)}
-            className="flex items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
-          >
-            <DownloadCloud size={16} />
+          <div className="flex items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white">
+            {miseAJour?.phase === 'pret' ? <RotateCw size={16} /> : <DownloadCloud size={16} />}
             {miseAJour?.phase === 'pret'
-              ? t('app.updateReady', { version: miseAJour.versionDisponible ?? '' })
-              : t('app.updateAvailable', { version: miseAJour?.versionDisponible ?? '' })}
-            <span className="underline">{t('app.viewSettings')}</span>
-          </button>
+              ? t('app.updateInstalling', { version: miseAJour.versionDisponible ?? '' })
+              : t('app.updateDownloading', { version: miseAJour?.versionDisponible ?? '' })}
+          </div>
         )}
         <main className="sauvegarde-main flex-1 overflow-y-auto">
           {page === 'tableau' && <Dashboard />}
@@ -95,10 +81,10 @@ export default function App() {
         </main>
       </div>
       <ConfirmationMiroirModal />
-      <UpdateDialog ouvert={miseAJourOuverte} fermer={() => setMiseAJourOuverte(false)} />
       <AboutDialog ouvert={aProposOuvert} fermer={() => setAProposOuvert(false)} />
       <FeedbackDialog ouvert={suggestionOuverte} fermer={() => setSuggestionOuverte(false)} />
       <WelcomeDialog ouvert={bienvenueOuverte} fermer={() => setBienvenueOuverte(false)} />
+      {notesRedemarrage && <UpdateNotesDialog notes={notesRedemarrage} fermer={effacerNotesRedemarrage} />}
     </div>
   )
 }

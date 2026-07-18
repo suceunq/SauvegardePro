@@ -6,6 +6,7 @@ import type {
   EtatMiseAJour,
   Job,
   LecteurDetecte,
+  NotesRedemarrage,
   NouveauJob,
   Parametres,
   ProgressionRun,
@@ -41,8 +42,7 @@ export const CANAUX_IPC = {
 
   misesAJourEtat: 'misesAJour:etat',
   misesAJourVerifier: 'misesAJour:verifier',
-  misesAJourTelecharger: 'misesAJour:telecharger',
-  misesAJourInstaller: 'misesAJour:installer',
+  misesAJourNotesRedemarrage: 'misesAJour:notesRedemarrage',
 
   evenementProgression: 'evenement:progression',
   evenementLecteurs: 'evenement:lecteurs',
@@ -83,8 +83,7 @@ export interface SauvegardeProAPI {
   misesAJour: {
     etatActuel(): Promise<EtatMiseAJour>
     verifier(): Promise<EtatMiseAJour>
-    telecharger(): Promise<void>
-    installer(): Promise<void>
+    notesRedemarrage(): Promise<NotesRedemarrage | null>
   }
   evenements: {
     surProgression(cb: (p: ProgressionRun) => void): () => void

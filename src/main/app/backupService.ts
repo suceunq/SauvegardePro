@@ -27,6 +27,10 @@ export class BackupService {
     return this.enCours.has(jobId)
   }
 
+  auMoinsUnJobEnCours(): boolean {
+    return this.enCours.size > 0
+  }
+
   annulerJob(jobId: number): boolean {
     const controller = this.enCours.get(jobId)
     if (!controller) return false

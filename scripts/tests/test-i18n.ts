@@ -37,7 +37,7 @@ const fichiersRenderer = [
   'App.tsx',
   'components/AboutDialog.tsx', 'components/ConfirmationMiroirModal.tsx', 'components/ExclusionEditor.tsx',
   'components/FeedbackDialog.tsx', 'components/ProgressBar.tsx', 'components/ScheduleEditor.tsx',
-  'components/Sidebar.tsx', 'components/StatutBadge.tsx', 'components/UpdateDialog.tsx',
+  'components/Sidebar.tsx', 'components/StatutBadge.tsx', 'components/UpdateNotesDialog.tsx',
   'pages/Dashboard.tsx', 'pages/HistoryPage.tsx', 'pages/JobsPage.tsx', 'pages/NewJobPage.tsx', 'pages/SettingsPage.tsx'
 ]
 

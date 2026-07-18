@@ -35,8 +35,7 @@ const api: SauvegardeProAPI = {
   misesAJour: {
     etatActuel: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourEtat),
     verifier: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourVerifier),
-    telecharger: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourTelecharger),
-    installer: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourInstaller)
+    notesRedemarrage: () => ipcRenderer.invoke(CANAUX_IPC.misesAJourNotesRedemarrage)
   },
   evenements: {
     surProgression: (cb: (p: ProgressionRun) => void) => {
