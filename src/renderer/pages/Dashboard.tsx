@@ -26,13 +26,13 @@ export default function Dashboard() {
   const jobsActifs = jobs.filter((j) => j.actif).length
 
   return (
-    <div className="flex flex-col gap-6 p-8">
+    <div className="page-enter flex flex-col gap-6 p-8">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-100">{t('nav.dashboard')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-100">{t('nav.dashboard')}</h1>
         <p className="text-sm text-slate-400">{t('dashboard.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Carte titre={t('dashboard.activeBackups')} valeur={String(jobsActifs)} icone={FolderSync} />
         <Carte titre={t('dashboard.detectedDrives')} valeur={String(lecteurs.length)} icone={HardDrive} />
         <Carte titre={t('dashboard.networkDevices')} valeur={String(appareilsReseau.length)} icone={Wifi} />
@@ -53,7 +53,7 @@ export default function Dashboard() {
               const progression = progressions[job.id]
               const enCours = progression && progression.phase !== 'termine'
               return (
-                <div key={job.id} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+                <div key={job.id} className="premium-card p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-slate-100">{job.nom}</div>
@@ -72,7 +72,7 @@ export default function Dashboard() {
                       ) : (
                         <button
                           onClick={() => void executerJob(job.id)}
-                          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500"
+                          className="btn-primary flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-medium"
                         >
                           <Play size={14} /> {t('common.backup')}
                         </button>
@@ -125,12 +125,12 @@ export default function Dashboard() {
 
 function Carte({ titre, valeur, icone: Icone }: { titre: string; valeur: string; icone: typeof HardDrive }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600/20 text-blue-300">
+    <div className="premium-card flex items-center gap-4 p-4">
+      <div className="stat-icon flex h-11 w-11 items-center justify-center rounded-xl">
         <Icone size={20} />
       </div>
       <div>
-        <div className="text-xl font-semibold text-slate-100">{valeur}</div>
+        <div className="stat-value text-2xl font-semibold text-slate-100">{valeur}</div>
         <div className="text-xs text-slate-500">{titre}</div>
       </div>
     </div>

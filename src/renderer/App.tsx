@@ -72,7 +72,7 @@ export default function App() {
       {toastMiseAJourVisible && (
         <div
           role="status"
-          className="fixed left-1/2 top-5 z-[70] flex -translate-x-1/2 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-100 shadow-2xl shadow-black/40"
+          className="toast-in fixed left-1/2 top-5 z-[70] flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm font-medium text-slate-100 shadow-2xl shadow-black/40 backdrop-blur-md"
         >
           <DownloadCloud size={16} />
           {t('app.updateDownloading', { version: miseAJour?.versionDisponible ?? '' })}
@@ -85,12 +85,12 @@ export default function App() {
       />
       <div className="sauvegarde-content flex flex-1 flex-col overflow-hidden">
         {banniereVisible && (
-          <div className="flex items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white">
+          <div role="status" className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-900/30">
             <RotateCw size={16} />
             {t('app.updateInstalling', { version: miseAJour?.versionDisponible ?? '' })}
           </div>
         )}
-        <main className="sauvegarde-main flex-1 overflow-y-auto">
+        <main key={page} className="sauvegarde-main page-enter flex-1 overflow-y-auto">
           {page === 'tableau' && <Dashboard />}
           {page === 'sauvegardes' && <JobsPage />}
           {page === 'nouvelle' && <NewJobPage />}

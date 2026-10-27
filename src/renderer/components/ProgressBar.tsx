@@ -24,18 +24,32 @@ interface ProgressBarProps {
 
 export default function ProgressBar(props: ProgressBarProps) {
   const { t, locale } = useI18n()
-  const pourcentage = props.fichiersTotal > 0 ? Math.min(100, Math.round((props.fichiersTraites / props.fichiersTotal) * 100)) : 0
+  const ratio =
+    props.fichiersTotal > 0
+      ? props.fichiersTraites / props.fichiersTotal
+      : props.octetsTotal > 0
+        ? props.octetsTransferes / props.octetsTotal
+        : 0
+  const pourcentage = Math.max(0, Math.min(100, Math.round(ratio * 100)))
+  const libelle = props.fichierCourant ?? libellePhase(props.phase, t)
 
   return (
     <div className="w-full">
-      <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
-        <span className="truncate">{props.fichierCourant ?? libellePhase(props.phase, t)}</span>
-        <span>{pourcentage}%</span>
+      <div className="mb-1.5 flex items-center justify-between gap-3 text-xs text-slate-400">
+        <span className="truncate" title={libelle}>{libelle}</span>
+        <span className="font-medium tabular-nums text-slate-200">{pourcentage}%</span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-        <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${pourcentage}%` }} />
+      <div
+        role="progressbar"
+        aria-label={libelle}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pourcentage}
+        className="progress-track h-2 w-full overflow-hidden rounded-full"
+      >
+        <div className="progress-fill h-full rounded-full" style={{ width: `${pourcentage}%` }} />
       </div>
-      <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+      <div className="mt-1.5 flex items-center justify-between text-[11px] tabular-nums text-slate-500">
         <span>
           {t('progress.files', { done: props.fichiersTraites, total: props.fichiersTotal })}
         </span>
